@@ -9,6 +9,8 @@ import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
 contract GovernanceToken is ERC20Votes, ERC20Permit {
     constructor(address initialHolder) ERC20("PredictToken", "PRED") ERC20Permit("PredictToken") {
         _mint(initialHolder, 1_000_000 ether);
+        //auto delegate
+        _delegate(initialHolder, initialHolder);
     }
 
     function _update(address from, address to, uint256 amount) internal override(ERC20, ERC20Votes) {
