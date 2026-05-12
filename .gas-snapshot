@@ -1,0 +1,6 @@
+YulBenchmark:test_gas_amountOut_solidity() (gas: 7836)
+YulBenchmark:test_gas_amountOut_yul() (gas: 7135)
+YulBenchmark:test_gas_calcFee_solidity() (gas: 7067)
+YulBenchmark:test_gas_calcFee_yul() (gas: 6657)
+YulBenchmark:test_gas_isPowerOfTwo_solidity() (gas: 6591)
+YulBenchmark:test_gas_isPowerOfTwo_yul() (gas: 6296)
