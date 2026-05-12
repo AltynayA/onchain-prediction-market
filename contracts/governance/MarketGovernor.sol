@@ -23,7 +23,7 @@ contract MarketGovernor is
 {
     constructor(IVotes token_, TimelockController timelock_)
         Governor("MarketGovernor")
-        GovernorSettings(1 days, 1 weeks, 1e18)
+        GovernorSettings(1 days, 1 weeks, 0)
         GovernorVotes(token_)
         GovernorVotesQuorumFraction(4)
         GovernorTimelockControl(timelock_)
@@ -42,7 +42,7 @@ contract MarketGovernor is
     }
 
     function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
-        return super.proposalThreshold();
+        return token().getPastTotalSupply(block.number - 1) / 100;
     }
 
     function state(uint256 proposalId) public view override(Governor, GovernorTimelockControl) returns (ProposalState) {
