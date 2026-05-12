@@ -62,12 +62,32 @@ contract PredictionMarket is
     uint256 public constant FEE_BPS = 100; // 1%
 
     //events
-    event MarketCreated(uint256 indexed marketId, string question, uint256 resolutionTime, address oracleAdapter);
-    event SharesBought(uint256 indexed marketId, address indexed buyer, bool isYes, uint256 collateralIn, uint256 sharesMinted);
-    event MarketResolved(uint256 indexed marketId, bool outcome, uint256 disputeDeadline);
+    event MarketCreated(
+        uint256 indexed marketId,
+        string question,
+        uint256 resolutionTime,
+        address oracleAdapter
+    );
+    event SharesBought(
+        uint256 indexed marketId,
+        address indexed buyer,
+        bool isYes,
+        uint256 collateralIn,
+        uint256 sharesMinted
+    );
+    event MarketResolved(
+        uint256 indexed marketId,
+        bool outcome,
+        uint256 disputeDeadline
+    );
     event MarketDisputed(uint256 indexed marketId, address indexed disputer);
     event MarketFinalized(uint256 indexed marketId, bool outcome);
-    event SharesRedeemed(uint256 indexed marketId, address indexed redeemer, uint256 sharesIn, uint256 collateralOut);
+    event SharesRedeemed(
+        uint256 indexed marketId,
+        address indexed redeemer,
+        uint256 sharesIn,
+        uint256 collateralOut
+    );
 
     //constructor/initializer
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -155,7 +175,7 @@ contract PredictionMarket is
         require(netAmount >= minShares, "PM: slippage");
 
         // effects — all state updated before any external call (CEI)
-        m.totalCollateral += amountIn;
+        m.totalCollateral += netAmount;
         if (isYes) {
             m.yesShares += netAmount;
         } else {
@@ -274,6 +294,6 @@ contract PredictionMarket is
         address
     ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
-// storage gap for future V1 additions (V2 appends after this)
+    // storage gap for future V1 additions (V2 appends after this)
     uint256[44] private __gap;
 }
