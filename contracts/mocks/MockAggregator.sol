@@ -19,11 +19,7 @@ contract MockAggregator {
         return decimals_;
     }
 
-    function latestRoundData()
-        external
-        view
-        returns (uint80, int256, uint256, uint256, uint80)
-    {
+    function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         return (roundId, price, updatedAt, updatedAt, roundId);
     }
 
@@ -33,12 +29,15 @@ contract MockAggregator {
         updatedAt = block.timestamp;
         roundId++;
     }
+
     function setStale(uint256 ageSeconds) external {
         updatedAt = block.timestamp - ageSeconds;
     }
+
     function setZeroPrice() external {
         price = 0;
     }
+
     function refresh() external {
         updatedAt = block.timestamp;
     }

@@ -8,13 +8,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 // tests: anyone can mint
 // on testnet: owner mints to funded wallets
 contract CollateralToken is ERC20, Ownable {
-
     uint8 private _decimals;
 
-    constructor(string memory name, string memory symbol, uint8 decimals_)
-        ERC20(name, symbol)
-        Ownable(msg.sender)
-    {
+    constructor(string memory name, string memory symbol, uint8 decimals_) ERC20(name, symbol) Ownable(msg.sender) {
         _decimals = decimals_;
     }
 
@@ -22,7 +18,7 @@ contract CollateralToken is ERC20, Ownable {
         return _decimals;
     }
 
-    // testnet: owner mints on 
+    // testnet: owner mints on
     // tests: anyone can call (owner is test contract)
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);

@@ -2,10 +2,12 @@
 cache/
 out/
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
+# Dry run broadcasts
+/broadcast/*/dry-run/
 /broadcast/**/dry-run/
+
+# Accidental mainnet broadcast
+/broadcast/Deploy.s.sol/8453/
 
 # Docs
 docs/

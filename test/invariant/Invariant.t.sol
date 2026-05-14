@@ -132,12 +132,10 @@ contract MarketHandler is Test {
     function buyYes(uint256 amount) public {
         amount = bound(amount, 1e4, 1000e6);
         if (collateral.balanceOf(buyer) < amount) return;
-        if (
-            market.getMarket(marketId).state !=
-            PredictionMarket.MarketState.Active
-        ) return;
-        if (block.timestamp >= market.getMarket(marketId).resolutionTime)
+        if (market.getMarket(marketId).state != PredictionMarket.MarketState.Active) return;
+        if (block.timestamp >= market.getMarket(marketId).resolutionTime) {
             return;
+        }
         vm.prank(buyer);
         try market.buyShares(marketId, true, amount, 0) {
             totalBought += amount;
@@ -147,12 +145,10 @@ contract MarketHandler is Test {
     function buyNo(uint256 amount) public {
         amount = bound(amount, 1e4, 1000e6);
         if (collateral.balanceOf(buyer) < amount) return;
-        if (
-            market.getMarket(marketId).state !=
-            PredictionMarket.MarketState.Active
-        ) return;
-        if (block.timestamp >= market.getMarket(marketId).resolutionTime)
+        if (market.getMarket(marketId).state != PredictionMarket.MarketState.Active) return;
+        if (block.timestamp >= market.getMarket(marketId).resolutionTime) {
             return;
+        }
         vm.prank(buyer);
         try market.buyShares(marketId, false, amount, 0) {
             totalBought += amount;
@@ -190,14 +186,7 @@ contract MarketInvariantTest is Test {
                     address(impl),
                     abi.encodeCall(
                         PredictionMarket.initialize,
-                        (
-                            admin,
-                            address(collateral),
-                            address(token),
-                            1 hours,
-                            2 days,
-                            address(feeVault)
-                        )
+                        (admin, address(collateral), address(token), 1 hours, 2 days, address(feeVault))
                     )
                 )
             )
@@ -208,31 +197,19 @@ contract MarketInvariantTest is Test {
 
         collateral.mint(buyer, 10_000_000e6);
 
-        marketId = market.createMarket(
-            "INV test?",
-            block.timestamp + 365 days,
-            address(oracle)
-        );
+        marketId = market.createMarket("INV test?", block.timestamp + 365 days, address(oracle));
         vm.stopPrank();
 
         vm.prank(buyer);
         collateral.approve(address(market), type(uint256).max);
 
-        handler = new MarketHandler(
-            market,
-            collateral,
-            token,
-            aggregator,
-            admin,
-            buyer,
-            marketId
-        );
+        handler = new MarketHandler(market, collateral, token, aggregator, admin, buyer, marketId);
         targetContract(address(handler));
     }
 
     /// INV-4: contract collateral balance >= totalCollateral stored in market
     function invariant_collateral_backed() public view {
-        uint256 stored  = market.getMarket(marketId).totalCollateral;
+        uint256 stored = market.getMarket(marketId).totalCollateral;
         uint256 balance = collateral.balanceOf(address(market));
         assertEq(balance, stored);
     }

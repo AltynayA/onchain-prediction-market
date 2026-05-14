@@ -23,12 +23,7 @@ contract MarketFactory is AccessControl {
     address[] public allMarkets;
     mapping(address => bool) public isMarket;
 
-    event MarketDeployed(
-        address indexed market,
-        address indexed admin,
-        bytes32 salt,
-        bool usedCreate2
-    );
+    event MarketDeployed(address indexed market, address indexed admin, bytes32 salt, bool usedCreate2);
 
     constructor(
         address admin_,
@@ -57,15 +52,10 @@ contract MarketFactory is AccessControl {
     }
 
     // deploy with create -> nonce based address
-    function deployMarket(
-        address marketAdmin
-    ) external onlyRole(FACTORY_ADMIN) returns (address market) {
+    function deployMarket(address marketAdmin) external onlyRole(FACTORY_ADMIN) returns (address market) {
         require(marketAdmin != address(0), "MF: zero market admin");
 
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            implementation,
-            _initData(marketAdmin)
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(implementation, _initData(marketAdmin));
         market = address(proxy);
         _register(market);
 
@@ -73,48 +63,31 @@ contract MarketFactory is AccessControl {
     }
 
     // deploy with create2 —> deterministic address from salt
-    function deployMarketCreate2(
-        address marketAdmin,
-        bytes32 salt
-    ) external onlyRole(FACTORY_ADMIN) returns (address market) {
+    function deployMarketCreate2(address marketAdmin, bytes32 salt)
+        external
+        onlyRole(FACTORY_ADMIN)
+        returns (address market)
+    {
         require(marketAdmin != address(0), "MF: zero market admin");
 
         // XOR salt with admin address to prevent front-running
         bytes32 effectiveSalt = salt ^ bytes32(uint256(uint160(marketAdmin)));
-        ERC1967Proxy proxy = new ERC1967Proxy{salt: effectiveSalt}(
-            implementation,
-            _initData(marketAdmin)
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy{salt: effectiveSalt}(implementation, _initData(marketAdmin));
         market = address(proxy);
         _register(market);
         emit MarketDeployed(market, marketAdmin, salt, true);
     }
 
     // predict the address (pre-approvals)
-    function predictAddress(
-        address marketAdmin,
-        bytes32 salt
-    ) external view returns (address) {
+    function predictAddress(address marketAdmin, bytes32 salt) external view returns (address) {
         bytes32 effectiveSalt = salt ^ bytes32(uint256(uint160(marketAdmin)));
-        bytes memory initCode = abi.encodePacked(
-            type(ERC1967Proxy).creationCode,
-            abi.encode(implementation, _initData(marketAdmin))
+        bytes memory initCode =
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, _initData(marketAdmin)));
+        return address(
+            uint160(
+                uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), effectiveSalt, keccak256(initCode))))
+            )
         );
-        return
-            address(
-                uint160(
-                    uint256(
-                        keccak256(
-                            abi.encodePacked(
-                                bytes1(0xff),
-                                address(this),
-                                effectiveSalt,
-                                keccak256(initCode)
-                            )
-                        )
-                    )
-                )
-            );
     }
 
     // admin setters
@@ -122,10 +95,12 @@ contract MarketFactory is AccessControl {
         require(v != address(0));
         feeVault = v;
     }
+
     function setStaleness(uint256 s) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(s > 0);
         defaultStaleness = s;
     }
+
     function setDisputeWindow(uint256 w) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(w > 0);
         defaultDisputeWindow = w;
@@ -136,21 +111,11 @@ contract MarketFactory is AccessControl {
     }
 
     //internal
-    function _initData(
-        address marketAdmin
-    ) internal view returns (bytes memory) {
-        return
-            abi.encodeCall(
-                PredictionMarket.initialize,
-                (
-                    marketAdmin,
-                    collateral,
-                    outcomeToken,
-                    defaultStaleness,
-                    defaultDisputeWindow,
-                    feeVault
-                )
-            );
+    function _initData(address marketAdmin) internal view returns (bytes memory) {
+        return abi.encodeCall(
+            PredictionMarket.initialize,
+            (marketAdmin, collateral, outcomeToken, defaultStaleness, defaultDisputeWindow, feeVault)
+        );
     }
 
     function _register(address market) internal {
