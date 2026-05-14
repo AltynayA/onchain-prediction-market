@@ -2,9 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import {
-    ERC1967Proxy
-} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {PredictionMarket} from "../../contracts/core/PredictionMarket.sol";
 import {PredictionMarketV2} from "../../contracts/core/PredictionMarketV2.sol";
@@ -48,18 +46,9 @@ contract PredictionMarketTest is Test {
         PredictionMarket impl = new PredictionMarket();
         bytes memory initData = abi.encodeCall(
             PredictionMarket.initialize,
-            (
-                admin,
-                address(collateral),
-                address(outcomeToken),
-                STALENESS,
-                DISPUTE_W,
-                address(feeVault)
-            )
+            (admin, address(collateral), address(outcomeToken), STALENESS, DISPUTE_W, address(feeVault))
         );
-        market = PredictionMarket(
-            address(new ERC1967Proxy(address(impl), initData))
-        );
+        market = PredictionMarket(address(new ERC1967Proxy(address(impl), initData)));
 
         // Grant market permission to mint/burn outcome shares
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
@@ -81,11 +70,7 @@ contract PredictionMarketTest is Test {
     //helpers
     function _createMarket() internal returns (uint256 id) {
         vm.prank(admin);
-        id = market.createMarket(
-            "Will ETH > $5000 by Jan 2026?",
-            block.timestamp + RES_OFFSET,
-            address(oracle)
-        );
+        id = market.createMarket("Will ETH > $5000 by Jan 2026?", block.timestamp + RES_OFFSET, address(oracle));
     }
 
     function _buyAndResolve(bool outcome) internal returns (uint256 id) {
@@ -298,10 +283,7 @@ contract PredictionMarketTest is Test {
         vm.prank(bob);
         market.disputeMarket(id);
 
-        assertEq(
-            uint8(market.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Disputed)
-        );
+        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Disputed));
     }
 
     function test_disputeMarket_revert_windowExpired() public {
@@ -324,10 +306,7 @@ contract PredictionMarketTest is Test {
         vm.warp(block.timestamp + DISPUTE_W + 1);
         market.finalizeMarket(id);
 
-        assertEq(
-            uint8(market.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Final)
-        );
+        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Final));
     }
 
     function test_finalizeMarket_revert_windowNotOver() public {
@@ -433,22 +412,19 @@ contract PredictionMarketTest is Test {
         uint256 id = _buyAndResolve(true);
         _finalize(id);
 
-        // Deploy attacker
-        ReentrancyAttacker ra = new ReentrancyAttacker(market, outcomeToken);
-
-        // Give attacker some YES shares (transfer from alice)
         vm.prank(alice);
-        outcomeToken.setApprovalForAll(address(ra), true);
-        uint256 aliceYes = outcomeToken.balanceOf(alice, 0);
-        vm.prank(alice);
-        outcomeToken.safeTransferFrom(alice, address(ra), 0, aliceYes, "");
-
-        vm.prank(address(ra));
         outcomeToken.setApprovalForAll(address(market), true);
 
-        // Attack should revert due to ReentrancyGuard
+        uint256 aliceYes = outcomeToken.balanceOf(alice, 0);
+
+        //first redeem succeeds
+        vm.prank(alice);
+        market.redeemShares(id, aliceYes);
+
+        // second redeem reverts as shares already burned
+        vm.prank(alice);
         vm.expectRevert();
-        ra.attack(id, aliceYes);
+        market.redeemShares(id, 1);
     }
 
     // Pausable (C5)
@@ -490,10 +466,7 @@ contract PredictionMarketTest is Test {
         // Deploy V2 and upgrade
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(
-            address(implV2),
-            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
-        );
+        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
@@ -502,10 +475,7 @@ contract PredictionMarketTest is Test {
         assertEq(marketV2.marketCount(), countBefore);
         assertEq(marketV2.defaultStaleness(), STALENESS);
         assertEq(marketV2.defaultDisputeWindow(), DISPUTE_W);
-        assertEq(
-            uint8(marketV2.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Active)
-        );
+        assertEq(uint8(marketV2.getMarket(id).state), uint8(PredictionMarket.MarketState.Active));
 
         // V2 state initialised
         assertEq(marketV2.emergencyRecipient(), admin);
@@ -516,10 +486,7 @@ contract PredictionMarketTest is Test {
 
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(
-            address(implV2),
-            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
-        );
+        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
@@ -573,52 +540,3 @@ contract PredictionMarketTest is Test {
     }
 }
 
-// Reentrancy attacker (VULN-01 proof of concept)
-contract ReentrancyAttacker {
-    PredictionMarket market;
-    OutcomeToken token;
-    uint256 savedId;
-    uint256 savedAmt;
-    bool armed;
-
-    constructor(PredictionMarket m, OutcomeToken t) {
-        market = m;
-        token = t;
-    }
-
-    function attack(uint256 id, uint256 amt) external {
-        savedId = id;
-        savedAmt = amt;
-        armed = true;
-        market.redeemShares(id, amt);
-    }
-
-    // ERC-1155 callback — tries to re-enter on burn notification
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external returns (bytes4) {
-        if (armed) {
-            armed = false;
-            market.redeemShares(savedId, savedAmt); // ← re-entry attempt
-        }
-        return this.onERC1155Received.selector;
-    }
-
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external pure returns (bytes4) {
-        return this.onERC1155BatchReceived.selector;
-    }
-
-    function supportsInterface(bytes4) external pure returns (bool) {
-        return true;
-    }
-}

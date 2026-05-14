@@ -17,26 +17,24 @@ import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 contract Deploy is Script {
-
     // token distribution (must sum to 1 mil ether)
-    uint256 constant TEAM_SHARE      = 400_000 ether;
-    uint256 constant TREASURY_SHARE  = 300_000 ether;
+    uint256 constant TEAM_SHARE = 400_000 ether;
+    uint256 constant TREASURY_SHARE = 300_000 ether;
     uint256 constant COMMUNITY_SHARE = 200_000 ether;
     uint256 constant LIQUIDITY_SHARE = 100_000 ether;
 
     // governance parameters (must match spec)
-    uint256 constant TIMELOCK_DELAY  = 2 days;
+    uint256 constant TIMELOCK_DELAY = 2 days;
 
     // oracle parameters
-    uint256 constant STALENESS       = 1 hours;
-    uint256 constant DISPUTE_WINDOW  = 2 days;
+    uint256 constant STALENESS = 1 hours;
+    uint256 constant DISPUTE_WINDOW = 2 days;
 
     function run() external {
         // load deployer from private key in env
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        address deployer    = vm.addr(deployerKey);
+        address deployer = vm.addr(deployerKey);
 
         console.log("deployer:  ", deployer);
         console.log("chain id:  ", block.chainid);
@@ -58,28 +56,30 @@ contract Deploy is Script {
         // 4) prediction market implementation + proxy
         //    deployer is temporary admin —> transferred to timelock in step 10
         PredictionMarket impl = new PredictionMarket();
-        PredictionMarket market = PredictionMarket(address(new ERC1967Proxy(
-            address(impl),
-            abi.encodeCall(PredictionMarket.initialize, (
-                deployer,               // temp admin
-                address(collateral),
-                address(outcomeToken),
-                STALENESS,
-                DISPUTE_WINDOW,
-                address(feeVault)
-            ))
-        )));
+        PredictionMarket market = PredictionMarket(
+            address(
+                new ERC1967Proxy(
+                    address(impl),
+                    abi.encodeCall(
+                        PredictionMarket.initialize,
+                        (
+                            deployer, // temp admin
+                            address(collateral),
+                            address(outcomeToken),
+                            STALENESS,
+                            DISPUTE_WINDOW,
+                            address(feeVault)
+                        )
+                    )
+                )
+            )
+        );
         console.log("PredictionMarket impl:  ", address(impl));
         console.log("PredictionMarket proxy: ", address(market));
 
         // 5) market factory (create + create2)
         MarketFactory factory = new MarketFactory(
-            deployer,
-            address(collateral),
-            address(outcomeToken),
-            address(feeVault),
-            STALENESS,
-            DISPUTE_WINDOW
+            deployer, address(collateral), address(outcomeToken), address(feeVault), STALENESS, DISPUTE_WINDOW
         );
         console.log("MarketFactory:  ", address(factory));
 
@@ -90,10 +90,10 @@ contract Deploy is Script {
         // 7) governance token (ERC20Votes + ERC20Permit)
         //    deployer receives all allocations — distribute after deployment
         GovernanceToken govToken = new GovernanceToken(
-            deployer,   // team      40%
-            deployer,   // treasury  30%
-            deployer,   // community 20%
-            deployer    // liquidity 10%
+            deployer, // team      40%
+            deployer, // treasury  30%
+            deployer, // community 20%
+            deployer // liquidity 10%
         );
         console.log("GovernanceToken:", address(govToken));
 
@@ -105,26 +105,24 @@ contract Deploy is Script {
             TIMELOCK_DELAY,
             proposers,
             executors,
-            deployer    // temporary admin
+            deployer // temporary admin
         );
         console.log("MarketTimelock: ", address(timelock));
 
         // 9) governor (1d delay, 1w period, 4% quorum, 1% threshold)
-        MarketGovernor governor = new MarketGovernor(
-            IVotes(address(govToken)),
-            TimelockController(payable(address(timelock)))
-        );
+        MarketGovernor governor =
+            new MarketGovernor(IVotes(address(govToken)), TimelockController(payable(address(timelock))));
         console.log("MarketGovernor: ", address(governor));
 
         // 10) wire roles
         // governor gets PROPOSER + CANCELLER on timelock
-        timelock.grantRole(timelock.PROPOSER_ROLE(),  address(governor));
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
         timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
 
         // market: grant minter role to market so it can mint YES/NO shares
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
 
-        // market: grant minter role to factory markets 
+        // market: grant minter role to factory markets
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(factory));
 
         // market: transfer default admin role to timelock

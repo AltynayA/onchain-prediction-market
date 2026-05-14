@@ -2,9 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import {
-    ERC1967Proxy
-} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {CPMM} from "../../contracts/core/CPMM.sol";
 import {PredictionMarket} from "../../contracts/core/PredictionMarket.sol";
 import {OutcomeToken} from "../../contracts/tokens/OutcomeToken.sol";
@@ -55,14 +53,7 @@ contract FuzzTest is Test {
                     address(impl),
                     abi.encodeCall(
                         PredictionMarket.initialize,
-                        (
-                            admin,
-                            address(collateral),
-                            address(token),
-                            1 hours,
-                            2 days,
-                            address(feeVault)
-                        )
+                        (admin, address(collateral), address(token), 1 hours, 2 days, address(feeVault))
                     )
                 )
             )
@@ -130,31 +121,20 @@ contract FuzzTest is Test {
     function testFuzz_pm_feeMath(uint256 amount) public {
         amount = bound(amount, 1e4, 10_000e6);
         vm.prank(admin);
-        uint256 id = market.createMarket(
-            "Q?",
-            block.timestamp + 7 days,
-            address(oracle)
-        );
+        uint256 id = market.createMarket("Q?", block.timestamp + 7 days, address(oracle));
 
         uint256 vaultBefore = collateral.balanceOf(address(feeVault));
         vm.prank(alice);
         market.buyShares(id, true, amount, 0);
 
-        assertEq(
-            collateral.balanceOf(address(feeVault)) - vaultBefore,
-            (amount * 100) / 10000
-        );
+        assertEq(collateral.balanceOf(address(feeVault)) - vaultBefore, (amount * 100) / 10000);
     }
 
     // F-06: shares minted always < amountIn (compare delta, not absolute balance)
     function testFuzz_pm_sharesLtInput(uint256 amount) public {
         amount = bound(amount, 1e4, 10_000e6);
         vm.prank(admin);
-        uint256 id = market.createMarket(
-            "Q?",
-            block.timestamp + 7 days,
-            address(oracle)
-        );
+        uint256 id = market.createMarket("Q?", block.timestamp + 7 days, address(oracle));
 
         uint256 yesBalBefore = token.balanceOf(alice, 0);
         vm.prank(alice);
@@ -165,19 +145,12 @@ contract FuzzTest is Test {
     }
 
     // F-07: redeemShares payout never exceeds totalCollateral
-    function testFuzz_pm_payoutBounded(
-        uint256 aliceAmt,
-        uint256 bobAmt
-    ) public {
+    function testFuzz_pm_payoutBounded(uint256 aliceAmt, uint256 bobAmt) public {
         aliceAmt = bound(aliceAmt, 100e6, 5_000e6);
         bobAmt = bound(bobAmt, 100e6, 5_000e6);
 
         vm.prank(admin);
-        uint256 id = market.createMarket(
-            "Q?",
-            block.timestamp + 7 days,
-            address(oracle)
-        );
+        uint256 id = market.createMarket("Q?", block.timestamp + 7 days, address(oracle));
 
         // Snapshot YES balance BEFORE buyShares — setUp minted 1_000_000e18 for CPMM,
         // so token.balanceOf(alice, 0) is huge. We only want the delta from buyShares.
@@ -217,16 +190,9 @@ contract FuzzTest is Test {
     }
 
     // F-09
-    function testFuzz_yul_amountOut(
-        uint128 amIn,
-        uint128 resIn,
-        uint128 resOut
-    ) public view {
+    function testFuzz_yul_amountOut(uint128 amIn, uint128 resIn, uint128 resOut) public view {
         vm.assume(resIn > 0 && resOut > 0 && amIn > 0);
-        assertEq(
-            yul.amountOutYul(amIn, resIn, resOut),
-            yul.amountOutSolidity(amIn, resIn, resOut)
-        );
+        assertEq(yul.amountOutYul(amIn, resIn, resOut), yul.amountOutSolidity(amIn, resIn, resOut));
     }
 
     // F-10

@@ -1,4 +1,3 @@
-
 // test/integration
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
@@ -9,12 +8,8 @@ import {MarketGovernor} from "../../contracts/governance/MarketGovernor.sol";
 import {MarketTimelock} from "../../contracts/governance/MarketTimelock.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
-import {
-    TimelockController
-} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {
-    ERC1967Proxy
-} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {PredictionMarket} from "../../contracts/core/PredictionMarket.sol";
 import {CollateralToken} from "../../contracts/tokens/CollateralToken.sol";
 import {OutcomeToken} from "../../contracts/tokens/OutcomeToken.sol";
@@ -60,18 +55,10 @@ contract GovernanceE2ETest is Test {
         address[] memory proposers = new address[](0);
         address[] memory executors = new address[](1);
         executors[0] = address(0); // open execution
-        timelock = new MarketTimelock(
-            TIMELOCK_DELAY,
-            proposers,
-            executors,
-            deployer
-        );
+        timelock = new MarketTimelock(TIMELOCK_DELAY, proposers, executors, deployer);
 
         // 3) governor
-        governor = new MarketGovernor(
-            IVotes(address(token)),
-            TimelockController(payable(address(timelock)))
-        );
+        governor = new MarketGovernor(IVotes(address(token)), TimelockController(payable(address(timelock))));
 
         // 4) wire governor into timelock
         timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
@@ -133,56 +120,33 @@ contract GovernanceE2ETest is Test {
     function _buildProposal()
         internal
         view
-        returns (
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            string memory description
-        )
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
     {
         targets = new address[](1);
         values = new uint256[](1);
         calldatas = new bytes[](1);
 
         targets[0] = address(market);
-        calldatas[0] = abi.encodeCall(
-            PredictionMarket.setDisputeWindow,
-            (NEW_DISPUTE_WINDOW)
-        );
+        calldatas[0] = abi.encodeCall(PredictionMarket.setDisputeWindow, (NEW_DISPUTE_WINDOW));
         description = "Proposal: increase dispute window from 2 to 3 days";
     }
 
     // full lifecycle
 
     function test_governance_propose_vote_queue_execute() public {
-        (
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            string memory description
-        ) = _buildProposal();
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) =
+            _buildProposal();
 
         // propose
         vm.prank(gwen);
-        uint256 proposalId = governor.propose(
-            targets,
-            values,
-            calldatas,
-            description
-        );
+        uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Pending)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Pending));
 
         // voting delay
         vm.roll(block.number + governor.votingDelay() + 1);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Active)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Active));
 
         // vote
         vm.prank(gwen);
@@ -192,28 +156,20 @@ contract GovernanceE2ETest is Test {
         vm.prank(peter);
         governor.castVote(proposalId, 0); // against 20k
 
-        (uint256 against, uint256 forVotes, ) = governor.proposalVotes(
-            proposalId
-        );
+        (uint256 against, uint256 forVotes,) = governor.proposalVotes(proposalId);
         assertEq(forVotes, 500_000 ether);
         assertEq(against, 20_000 ether);
 
         // voting ends
         vm.roll(block.number + governor.votingPeriod() + 1);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Succeeded)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Succeeded));
 
         // queue
         bytes32 descHash = keccak256(bytes(description));
         governor.queue(targets, values, calldatas, descHash);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Queued)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Queued));
 
         // timelock delay
         vm.warp(block.timestamp + TIMELOCK_DELAY + 1);
@@ -221,10 +177,7 @@ contract GovernanceE2ETest is Test {
         // execute
         governor.execute(targets, values, calldatas, descHash);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Executed)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Executed));
 
         // verifying
         assertEq(market.defaultDisputeWindow(), NEW_DISPUTE_WINDOW);
@@ -232,20 +185,11 @@ contract GovernanceE2ETest is Test {
 
     // defeat:quorum not reached
     function test_governance_defeated_quorumNotReached() public {
-        (
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            string memory description
-        ) = _buildProposal();
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) =
+            _buildProposal();
 
         vm.prank(gwen);
-        uint256 proposalId = governor.propose(
-            targets,
-            values,
-            calldatas,
-            description
-        );
+        uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
         vm.roll(block.number + governor.votingDelay() + 1);
 
@@ -255,28 +199,16 @@ contract GovernanceE2ETest is Test {
 
         vm.roll(block.number + governor.votingPeriod() + 1);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Defeated)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Defeated));
     }
 
     // defeat: against wins
     function test_governance_defeated_againstWins() public {
-        (
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            string memory description
-        ) = _buildProposal();
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) =
+            _buildProposal();
 
         vm.prank(gwen);
-        uint256 proposalId = governor.propose(
-            targets,
-            values,
-            calldatas,
-            description
-        );
+        uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
         vm.roll(block.number + governor.votingDelay() + 1);
 
@@ -287,28 +219,16 @@ contract GovernanceE2ETest is Test {
 
         vm.roll(block.number + governor.votingPeriod() + 1);
 
-        assertEq(
-            uint8(governor.state(proposalId)),
-            uint8(IGovernor.ProposalState.Defeated)
-        );
+        assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Defeated));
     }
 
     // execute before timelock delay reverts
     function test_governance_cannotExecuteBeforeTimelockDelay() public {
-        (
-            address[] memory targets,
-            uint256[] memory values,
-            bytes[] memory calldatas,
-            string memory description
-        ) = _buildProposal();
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description) =
+            _buildProposal();
 
         vm.prank(gwen);
-        uint256 proposalId = governor.propose(
-            targets,
-            values,
-            calldatas,
-            description
-        );
+        uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
         vm.roll(block.number + governor.votingDelay() + 1);
 
@@ -329,9 +249,7 @@ contract GovernanceE2ETest is Test {
 
     // timelock market control
     function test_timelock_isAdminOfMarket() public view {
-        assertTrue(
-            market.hasRole(market.DEFAULT_ADMIN_ROLE(), address(timelock))
-        );
+        assertTrue(market.hasRole(market.DEFAULT_ADMIN_ROLE(), address(timelock)));
     }
 
     function test_directCall_toMarket_reverts_forNonTimelock() public {

@@ -2,10 +2,7 @@
 pragma solidity ^0.8.24;
 
 interface AggregatorV3Interface {
-    function latestRoundData()
-        external
-        view
-        returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80);
+    function latestRoundData() external view returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80);
 }
 
 contract OracleAdapter {
@@ -19,14 +16,14 @@ contract OracleAdapter {
     }
 
     function getPrice() external view returns (int256) {
-        (, int256 price, , uint256 updatedAt, ) = feed.latestRoundData();
+        (, int256 price,, uint256 updatedAt,) = feed.latestRoundData();
         _checkFresh(updatedAt, STALENESS_THRESHOLD);
         require(price > 0, "OA: non-positive price");
         return price;
     }
 
     function assertFresh(uint256 maxAge) external view {
-        (, , , uint256 updatedAt, ) = feed.latestRoundData();
+        (,,, uint256 updatedAt,) = feed.latestRoundData();
         _checkFresh(updatedAt, maxAge);
     }
 

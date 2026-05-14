@@ -4,8 +4,7 @@ pragma solidity ^0.8.24;
 // for  prediction market
 // each func has a solidity copy  (for gas benchmarking)
 contract YulHelpers {
-
-// 1) fee calculation
+    // 1) fee calculation
 
     // yul ver
     function calcFeeYul(uint256 amount, uint256 feeBps) external pure returns (uint256 fee) {
@@ -20,41 +19,37 @@ contract YulHelpers {
         return (amount * feeBps) / 10000;
     }
 
-// 2) cpmm amount out 
+    // 2) cpmm amount out
 
     // yul ver
     // no overflows
-    function amountOutYul(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut
-    ) external pure returns (uint256 out) {
+    function amountOutYul(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) external pure returns (uint256 out) {
         assembly {
             // out = amountIn*reserveOut / (reserveIn + amountIn)
-            let numerator   := mul(amountIn, reserveOut)
+            let numerator := mul(amountIn, reserveOut)
             let denominator := add(reserveIn, amountIn)
             out := div(numerator, denominator)
         }
     }
 
     // solidity ver
-    function amountOutSolidity(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut
-    ) external pure returns (uint256) {
+    function amountOutSolidity(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)
+        external
+        pure
+        returns (uint256)
+    {
         if (amountIn == 0 || reserveIn == 0 || reserveOut == 0) return 0;
         return (amountIn * reserveOut) / (reserveIn + amountIn);
     }
 
-// 3) power of two check 
+    // 3) power of two check
 
     // yul ver
     function isPowerOfTwoYul(uint256 value) external pure returns (bool result) {
         assembly {
             let isNotZero := gt(value, 0)
-            let bitsAnd   := and(value, sub(value, 1))
-            let isZero    := iszero(bitsAnd)
+            let bitsAnd := and(value, sub(value, 1))
+            let isZero := iszero(bitsAnd)
             result := and(isNotZero, isZero)
         }
     }

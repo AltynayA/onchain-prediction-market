@@ -7,14 +7,13 @@ import {MarketGovernor} from "../../contracts/governance/MarketGovernor.sol";
 import {MarketTimelock} from "../../contracts/governance/MarketTimelock.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
- 
-contract GovernanceTokenTest is Test {
 
-    address team      = makeAddr("team");
-    address treasury  = makeAddr("treasury");
+contract GovernanceTokenTest is Test {
+    address team = makeAddr("team");
+    address treasury = makeAddr("treasury");
     address community = makeAddr("community");
     address liquidity = makeAddr("liquidity");
-    address gwen     = makeAddr("gwen");
+    address gwen = makeAddr("gwen");
 
     GovernanceToken token;
 
@@ -56,7 +55,7 @@ contract GovernanceTokenTest is Test {
         vm.prank(team);
         token.delegate(gwen);
         assertEq(token.getVotes(gwen), 400_000 ether);
-        assertEq(token.getVotes(team),  0);
+        assertEq(token.getVotes(team), 0);
     }
 
     function test_pastVotes_snapshotCorrect() public {
@@ -86,8 +85,7 @@ contract GovernanceTokenTest is Test {
 
 //  MarketTimelock: min delay is 2 days, roles
 contract MarketTimelockTest is Test {
-
-    address admin    = makeAddr("admin");
+    address admin = makeAddr("admin");
     address proposer = makeAddr("proposer");
     address executor = makeAddr("executor");
 
@@ -130,16 +128,15 @@ contract MarketTimelockTest is Test {
 
 //  GovernanceToken: supply, distribution, delegation, voting power, erc20 permit
 contract MarketGovernorTest is Test {
-
-    address team      = makeAddr("team");
-    address treasury  = makeAddr("treasury");
+    address team = makeAddr("team");
+    address treasury = makeAddr("treasury");
     address community = makeAddr("community");
     address liquidity = makeAddr("liquidity");
-    address gwen     = makeAddr("gwen");
+    address gwen = makeAddr("gwen");
 
     GovernanceToken token;
-    MarketTimelock  timelock;
-    MarketGovernor  governor;
+    MarketTimelock timelock;
+    MarketGovernor governor;
 
     function setUp() public {
         // deploy token
@@ -152,13 +149,10 @@ contract MarketGovernorTest is Test {
         timelock = new MarketTimelock(2 days, proposers, executors, address(this));
 
         // deploy governor
-        governor = new MarketGovernor(
-            IVotes(address(token)),
-            TimelockController(payable(address(timelock)))
-        );
+        governor = new MarketGovernor(IVotes(address(token)), TimelockController(payable(address(timelock))));
 
         // wire :governor gets proposer + canceller
-        timelock.grantRole(timelock.PROPOSER_ROLE(),  address(governor));
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
         timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
         timelock.renounceRole(timelock.DEFAULT_ADMIN_ROLE(), address(this));
 
@@ -192,7 +186,7 @@ contract MarketGovernorTest is Test {
     }
 
     function test_quorum_absolute_is4Percent() public view {
-        // 4% of 1 mil ether 
+        // 4% of 1 mil ether
         assertEq(governor.quorum(block.number - 1), 40_000 ether);
     }
 
@@ -205,9 +199,9 @@ contract MarketGovernorTest is Test {
     }
 
     function test_propose_aboveThreshold_succeeds() public {
-        address[] memory targets   = new address[](1);
-        uint256[] memory values    = new uint256[](1);
-        bytes[]   memory calldatas = new bytes[](1);
+        address[] memory targets = new address[](1);
+        uint256[] memory values = new uint256[](1);
+        bytes[] memory calldatas = new bytes[](1);
         targets[0] = address(0);
 
         vm.prank(gwen); // 50k > 10k (threshold)
@@ -223,9 +217,9 @@ contract MarketGovernorTest is Test {
         token.delegate(poor);
         vm.roll(block.number + 1);
 
-        address[] memory targets   = new address[](1);
-        uint256[] memory values    = new uint256[](1);
-        bytes[]   memory calldatas = new bytes[](1);
+        address[] memory targets = new address[](1);
+        uint256[] memory values = new uint256[](1);
+        bytes[] memory calldatas = new bytes[](1);
         targets[0] = address(0);
 
         vm.prank(poor);

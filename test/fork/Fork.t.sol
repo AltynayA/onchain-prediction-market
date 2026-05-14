@@ -13,28 +13,26 @@ import {OutcomeToken} from "../../contracts/tokens/OutcomeToken.sol";
 // forks ethereum mainnet and interacts with real deployed protocols
 // run with: source .env && forge test --match-path test/fork/Fork.t.sol --fork-url $MAINNET_RPC_URL -vvv
 contract ForkTest is Test {
-
     // erc-1155 receiver hooks so this contract can hold outcome tokens
-    function onERC1155Received(address, address, uint256, uint256, bytes calldata)
-        external pure returns (bytes4)
-    {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
     function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
-        external pure returns (bytes4)
+        external
+        pure
+        returns (bytes4)
     {
         return this.onERC1155BatchReceived.selector;
     }
 
-
     // mainnet addresses
-    address constant USDC         = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address constant CHAINLINK_ETH = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
-    address constant USDC_WHALE   = 0x37305B1cD40574E4C5Ce33f8e8306Be057fD7341;
+    address constant USDC_WHALE = 0x37305B1cD40574E4C5Ce33f8e8306Be057fD7341;
 
     // actors
-    address admin    = makeAddr("admin");
+    address admin = makeAddr("admin");
     address resolver = makeAddr("resolver");
 
     uint256 mainnetFork;
@@ -96,32 +94,29 @@ contract ForkTest is Test {
 
     // 4 prediction market buyshares end-to-end with real usdc
     function test_fork_predictionMarket_buyShares_withRealUSDC() public {
-        OutcomeToken  outcomeToken = new OutcomeToken();
-        FeeVault      feeVault     = new FeeVault(IERC20(USDC));
-        OracleAdapter oracle       = new OracleAdapter(CHAINLINK_ETH);
+        OutcomeToken outcomeToken = new OutcomeToken();
+        FeeVault feeVault = new FeeVault(IERC20(USDC));
+        OracleAdapter oracle = new OracleAdapter(CHAINLINK_ETH);
 
         PredictionMarket impl = new PredictionMarket();
-        PredictionMarket market = PredictionMarket(address(new ERC1967Proxy(
-            address(impl),
-            abi.encodeCall(PredictionMarket.initialize, (
-                admin,
-                USDC,
-                address(outcomeToken),
-                3 hours,
-                2 days,
-                address(feeVault)
-            ))
-        )));
+        PredictionMarket market = PredictionMarket(
+            address(
+                new ERC1967Proxy(
+                    address(impl),
+                    abi.encodeCall(
+                        PredictionMarket.initialize,
+                        (admin, USDC, address(outcomeToken), 3 hours, 2 days, address(feeVault))
+                    )
+                )
+            )
+        );
 
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
 
         vm.startPrank(admin);
         market.grantRole(market.RESOLVER_ROLE(), resolver);
-        uint256 marketId = market.createMarket(
-            "Will ETH > $5000 by end of 2025?",
-            block.timestamp + 30 days,
-            address(oracle)
-        );
+        uint256 marketId =
+            market.createMarket("Will ETH > $5000 by end of 2025?", block.timestamp + 30 days, address(oracle));
         vm.stopPrank();
 
         // fund address(this) with real usdc
@@ -137,7 +132,7 @@ contract ForkTest is Test {
         uint256 expectedNet = amount - expectedFee;
 
         assertEq(IERC20(USDC).balanceOf(address(feeVault)), expectedFee);
-        assertEq(IERC20(USDC).balanceOf(address(market)),   expectedNet);
-        assertEq(outcomeToken.balanceOf(address(this), 0),  expectedNet);
+        assertEq(IERC20(USDC).balanceOf(address(market)), expectedNet);
+        assertEq(outcomeToken.balanceOf(address(this), 0), expectedNet);
     }
 }

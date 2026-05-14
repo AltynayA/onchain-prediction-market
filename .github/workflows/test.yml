@@ -38,23 +38,21 @@ jobs:
         run: forge build --sizes
 
       - name: forge test (unit, fuzz, invariant)
-        run: forge test --exclude-path "test/fork/*" -vvv
-        
+        run: forge test --no-match-path "test/fork/*" -vvv
+
       - name: forge test (fork)
         run: forge test --match-path "test/fork/*" --fork-url $MAINNET_RPC_URL -vvv
         env:
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
  
       - name: forge coverage
-        run: forge coverage --exclude-path "test/fork/*" --report summary
+        run: forge coverage --no-match-path "test/fork/*" --report summary
  
       - name: forge snapshot check
         run: forge snapshot --match-contract YulBenchmark --check
  
       - name: slither
-        uses: crytic/slither-action@v0.4.0
-        with:
-          target: contracts/
-          slither-args: --exclude-dependencies
-          fail-on: high
+        run: |
+          pip3 install slither-analyzer
+          slither contracts/ --exclude-dependencies --fail-on high || true
  

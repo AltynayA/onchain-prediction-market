@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {
-    ReentrancyGuard
-} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import {
-    IERC1155Receiver
-} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
 //constant-product AMM for outcome shares
 // x*y = k, with 0.3% fee
@@ -30,24 +26,9 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
     mapping(address => uint256) public lpBalance;
 
     //events
-    event LiquidityAdded(
-        address indexed provider,
-        uint256 amountYes,
-        uint256 amountNo,
-        uint256 lpMinted
-    );
-    event LiquidityRemoved(
-        address indexed provider,
-        uint256 amountYes,
-        uint256 amountNo,
-        uint256 lpBurned
-    );
-    event Swap(
-        address indexed trader,
-        bool yesForNo,
-        uint256 amountIn,
-        uint256 amountOut
-    );
+    event LiquidityAdded(address indexed provider, uint256 amountYes, uint256 amountNo, uint256 lpMinted);
+    event LiquidityRemoved(address indexed provider, uint256 amountYes, uint256 amountNo, uint256 lpBurned);
+    event Swap(address indexed trader, bool yesForNo, uint256 amountIn, uint256 amountOut);
 
     //constructor
     constructor(address outcomeToken_) {
@@ -55,11 +36,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         outcomeToken = IERC1155(outcomeToken_);
     }
 
-    function addLiquidity(
-        uint256 yesIn,
-        uint256 noIn,
-        uint256 minLp
-    ) external nonReentrant returns (uint256 lpMinted) {
+    function addLiquidity(uint256 yesIn, uint256 noIn, uint256 minLp) external nonReentrant returns (uint256 lpMinted) {
         // Checks
         require(yesIn > 0 && noIn > 0, "CPMM: zero input");
 
@@ -97,22 +74,12 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         amounts[0] = yesIn;
         ids[1] = NO;
         amounts[1] = noIn;
-        outcomeToken.safeBatchTransferFrom(
-            msg.sender,
-            address(this),
-            ids,
-            amounts,
-            ""
-        );
+        outcomeToken.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
 
         emit LiquidityAdded(msg.sender, yesIn, noIn, lpMinted);
     }
 
-    function removeLiquidity(
-        uint256 lpAmount,
-        uint256 minYes,
-        uint256 minNo
-    ) external nonReentrant {
+    function removeLiquidity(uint256 lpAmount, uint256 minYes, uint256 minNo) external nonReentrant {
         // checks
         require(lpAmount > 0, "CPMM: zero lp");
         require(lpBalance[msg.sender] >= lpAmount, "CPMM: insufficient lp");
@@ -141,22 +108,12 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         amounts[0] = yesOut;
         ids[1] = NO;
         amounts[1] = noOut;
-        outcomeToken.safeBatchTransferFrom(
-            address(this),
-            msg.sender,
-            ids,
-            amounts,
-            ""
-        );
+        outcomeToken.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, "");
 
         emit LiquidityRemoved(msg.sender, yesOut, noOut, lpAmount);
     }
 
-    function swap(
-        bool yesForNo,
-        uint256 amountIn,
-        uint256 minOut
-    ) external nonReentrant returns (uint256 amountOut) {
+    function swap(bool yesForNo, uint256 amountIn, uint256 minOut) external nonReentrant returns (uint256 amountOut) {
         // checks
         require(amountIn > 0, "CPMM: zero input");
         require(reserveYes > 0 && reserveNo > 0, "CPMM: no liquidity");
@@ -183,28 +140,13 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         uint256 tokenOut = yesForNo ? NO : YES;
 
         // interactions — pull input, then push output
-        outcomeToken.safeTransferFrom(
-            msg.sender,
-            address(this),
-            tokenIn,
-            amountIn,
-            ""
-        );
-        outcomeToken.safeTransferFrom(
-            address(this),
-            msg.sender,
-            tokenOut,
-            amountOut,
-            ""
-        );
+        outcomeToken.safeTransferFrom(msg.sender, address(this), tokenIn, amountIn, "");
+        outcomeToken.safeTransferFrom(address(this), msg.sender, tokenOut, amountOut, "");
 
         emit Swap(msg.sender, yesForNo, amountIn, amountOut);
     }
 
-    function getAmountOut(
-        bool yesForNo,
-        uint256 amountIn
-    ) external view returns (uint256) {
+    function getAmountOut(bool yesForNo, uint256 amountIn) external view returns (uint256) {
         require(amountIn > 0, "CPMM: zero input");
         require(reserveYes > 0 && reserveNo > 0, "CPMM: no liquidity");
 
@@ -220,11 +162,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
     }
 
     //internal math functions
-    function _getAmountOutYul(
-        uint256 amountIn,
-        uint256 resIn,
-        uint256 resOut
-    ) internal pure returns (uint256 out) {
+    function _getAmountOutYul(uint256 amountIn, uint256 resIn, uint256 resOut) internal pure returns (uint256 out) {
         assembly {
             let amountInWithFee := mul(amountIn, 997)
             let numerator := mul(amountInWithFee, resOut)
@@ -233,11 +171,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         }
     }
 
-    function _getAmountOutSolidity(
-        uint256 amountIn,
-        uint256 resIn,
-        uint256 resOut
-    ) internal pure returns (uint256) {
+    function _getAmountOutSolidity(uint256 amountIn, uint256 resIn, uint256 resOut) internal pure returns (uint256) {
         uint256 amountInWithFee = amountIn * 997;
         return (amountInWithFee * resOut) / (resIn * 1000 + amountInWithFee);
     }
@@ -257,29 +191,25 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
 
     //ERC-1155 receiver functions
     // Required so the contract can hold ERC-1155 tokens
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata)
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external pure override returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         return this.onERC1155BatchReceived.selector;
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external pure override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
         return interfaceId == type(IERC1155Receiver).interfaceId;
     }
 }

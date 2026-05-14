@@ -41,14 +41,14 @@ contract CPMMTest is Test {
         token.setApprovalForAll(address(cpmm), true);
     }
 
-// addLiquidity tests
+    // addLiquidity tests
     function test_addLiquidity_firstDeposit_mintsLp() public {
         vm.prank(alice);
         uint256 lp = cpmm.addLiquidity(10_000e18, 10_000e18, 0);
 
         assertGt(lp, 0);
         assertEq(cpmm.reserveYes(), 10_000e18);
-        assertEq(cpmm.reserveNo(),  10_000e18);
+        assertEq(cpmm.reserveNo(), 10_000e18);
         assertEq(cpmm.lpBalance(alice), lp);
         assertEq(cpmm.totalLpSupply(), lp + 1000); // 1000 = MINIMUM_LIQUIDITY
     }
@@ -94,28 +94,28 @@ contract CPMMTest is Test {
 
     function test_addLiquidity_takesTokensFromCaller() public {
         uint256 yesBefore = token.balanceOf(alice, YES);
-        uint256 noBefore  = token.balanceOf(alice, NO);
+        uint256 noBefore = token.balanceOf(alice, NO);
 
         vm.prank(alice);
         cpmm.addLiquidity(10_000e18, 8_000e18, 0);
 
         assertEq(token.balanceOf(alice, YES), yesBefore - 10_000e18);
-        assertEq(token.balanceOf(alice, NO),  noBefore  - 8_000e18);
+        assertEq(token.balanceOf(alice, NO), noBefore - 8_000e18);
     }
 
-//removeLiquidity
-        function test_removeLiquidity_returnsTokens() public {
+    //removeLiquidity
+    function test_removeLiquidity_returnsTokens() public {
         vm.prank(alice);
         uint256 lp = cpmm.addLiquidity(10_000e18, 10_000e18, 0);
 
         uint256 yesBefore = token.balanceOf(alice, YES);
-        uint256 noBefore  = token.balanceOf(alice, NO);
+        uint256 noBefore = token.balanceOf(alice, NO);
 
         vm.prank(alice);
         cpmm.removeLiquidity(lp, 0, 0);
 
         assertGt(token.balanceOf(alice, YES), yesBefore);
-        assertGt(token.balanceOf(alice, NO),  noBefore);
+        assertGt(token.balanceOf(alice, NO), noBefore);
         assertEq(cpmm.lpBalance(alice), 0);
     }
 
@@ -135,11 +135,7 @@ contract CPMMTest is Test {
         cpmm.removeLiquidity(lpHalf, 0, 0);
 
         // Allow 1 wei rounding tolerance
-        assertApproxEqAbs(
-            token.balanceOf(alice, YES) - yesBefore,
-            expectedYes,
-            1
-        );
+        assertApproxEqAbs(token.balanceOf(alice, YES) - yesBefore, expectedYes, 1);
     }
 
     function test_removeLiquidity_revert_insufficientLp() public {
@@ -175,7 +171,7 @@ contract CPMMTest is Test {
         cpmm.removeLiquidity(lp, 0, type(uint256).max);
     }
 
-//swap
+    //swap
     function _seedPool() internal {
         vm.prank(alice);
         cpmm.addLiquidity(10_000e18, 10_000e18, 0);
@@ -225,13 +221,13 @@ contract CPMMTest is Test {
     function test_swap_reservesUpdatedCorrectly() public {
         _seedPool();
         uint256 resYesBefore = cpmm.reserveYes();
-        uint256 resNoBefore  = cpmm.reserveNo();
+        uint256 resNoBefore = cpmm.reserveNo();
 
         vm.prank(bob);
         uint256 out = cpmm.swap(true, 100e18, 0); // YES->NO
 
         assertEq(cpmm.reserveYes(), resYesBefore + 100e18);
-        assertEq(cpmm.reserveNo(),  resNoBefore  - out);
+        assertEq(cpmm.reserveNo(), resNoBefore - out);
     }
 
     function test_swap_revert_zeroInput() public {
@@ -254,7 +250,7 @@ contract CPMMTest is Test {
         cpmm.swap(true, 100e18, type(uint256).max);
     }
 
-//getAmountOut
+    //getAmountOut
     function test_getAmountOut_matchesActualSwap() public {
         _seedPool();
         uint256 preview = cpmm.getAmountOut(true, 200e18);
@@ -276,7 +272,7 @@ contract CPMMTest is Test {
         cpmm.getAmountOut(true, 100e18);
     }
 
-//impliedProbabilityYes
+    //impliedProbabilityYes
     function test_impliedProbability_balancedPool() public {
         _seedPool();
         uint256 prob = cpmm.impliedProbabilityYes();
@@ -286,7 +282,8 @@ contract CPMMTest is Test {
 
     function test_impliedProbability_afterSwap_shifts() public {
         _seedPool();
-        vm.prank(bob); cpmm.swap(true, 1000e18, 0); // buy YES -> NO gets scarce -> YES prob drops
+        vm.prank(bob); // buy YES -> NO gets scarce -> YES prob drops
+        cpmm.swap(true, 1000e18, 0);
 
         uint256 prob = cpmm.impliedProbabilityYes();
         assertLt(prob, 0.5e18); // YES became less likely after buying it

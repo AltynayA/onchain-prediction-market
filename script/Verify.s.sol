@@ -10,21 +10,20 @@ import {MarketGovernor} from "../contracts/governance/MarketGovernor.sol";
 // run after Deploy.s.sol with deployed addresses in .env:
 //   source .env && forge script script/Verify.s.sol:Verify --rpc-url $BASE_SEPOLIA_RPC_URL -vvvv
 contract Verify is Script {
-
-    uint256 constant EXPECTED_TIMELOCK_DELAY  = 2 days;
-    uint256 constant EXPECTED_VOTING_DELAY    = 1 days;
-    uint256 constant EXPECTED_VOTING_PERIOD   = 1 weeks;
+    uint256 constant EXPECTED_TIMELOCK_DELAY = 2 days;
+    uint256 constant EXPECTED_VOTING_DELAY = 1 days;
+    uint256 constant EXPECTED_VOTING_PERIOD = 1 weeks;
     uint256 constant EXPECTED_QUORUM_FRACTION = 4;
 
     function run() external view {
-        address marketAddr   = vm.envAddress("MARKET_ADDRESS");
+        address marketAddr = vm.envAddress("MARKET_ADDRESS");
         address timelockAddr = vm.envAddress("TIMELOCK_ADDRESS");
         address governorAddr = vm.envAddress("GOVERNOR_ADDRESS");
-        address deployer     = vm.envAddress("DEPLOYER_ADDRESS");
+        address deployer = vm.envAddress("DEPLOYER_ADDRESS");
 
-        PredictionMarket market   = PredictionMarket(marketAddr);
-        MarketTimelock   timelock = MarketTimelock(payable(timelockAddr));
-        MarketGovernor   governor = MarketGovernor(payable(governorAddr));
+        PredictionMarket market = PredictionMarket(marketAddr);
+        MarketTimelock timelock = MarketTimelock(payable(timelockAddr));
+        MarketGovernor governor = MarketGovernor(payable(governorAddr));
 
         console.log("post-deployment verification");
 
@@ -54,22 +53,22 @@ contract Verify is Script {
         require(!deployerHasTimelockAdmin, "FAIL: deployer still has timelock admin");
 
         // governor parameters match spec
-        uint256 votingDelay  = governor.votingDelay();
+        uint256 votingDelay = governor.votingDelay();
         uint256 votingPeriod = governor.votingPeriod();
-        uint256 quorum       = governor.quorumNumerator();
+        uint256 quorum = governor.quorumNumerator();
         console.log("voting delay (seconds):        ", votingDelay);
         console.log("voting period (seconds):       ", votingPeriod);
         console.log("quorum fraction (%):           ", quorum);
-        require(votingDelay  == EXPECTED_VOTING_DELAY,    "FAIL: wrong voting delay");
-        require(votingPeriod == EXPECTED_VOTING_PERIOD,   "FAIL: wrong voting period");
-        require(quorum       == EXPECTED_QUORUM_FRACTION, "FAIL: wrong quorum");
+        require(votingDelay == EXPECTED_VOTING_DELAY, "FAIL: wrong voting delay");
+        require(votingPeriod == EXPECTED_VOTING_PERIOD, "FAIL: wrong voting period");
+        require(quorum == EXPECTED_QUORUM_FRACTION, "FAIL: wrong quorum");
 
         // market config sanity check
-        uint256 staleness     = market.defaultStaleness();
+        uint256 staleness = market.defaultStaleness();
         uint256 disputeWindow = market.defaultDisputeWindow();
         console.log("oracle staleness (seconds):    ", staleness);
         console.log("dispute window (seconds):      ", disputeWindow);
-        require(staleness     > 0, "FAIL: zero staleness");
+        require(staleness > 0, "FAIL: zero staleness");
         require(disputeWindow > 0, "FAIL: zero dispute window");
 
         console.log("all checks passed ");

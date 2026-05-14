@@ -18,12 +18,7 @@ interface IOracleAdapter {
 }
 
 // Core market contract — UUPS upgradeable
-contract PredictionMarket is
-    UUPSUpgradeable,
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    ReentrancyGuard
-{
+contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     //roles
@@ -62,32 +57,14 @@ contract PredictionMarket is
     uint256 public constant FEE_BPS = 100; // 1%
 
     //events
-    event MarketCreated(
-        uint256 indexed marketId,
-        string question,
-        uint256 resolutionTime,
-        address oracleAdapter
-    );
+    event MarketCreated(uint256 indexed marketId, string question, uint256 resolutionTime, address oracleAdapter);
     event SharesBought(
-        uint256 indexed marketId,
-        address indexed buyer,
-        bool isYes,
-        uint256 collateralIn,
-        uint256 sharesMinted
+        uint256 indexed marketId, address indexed buyer, bool isYes, uint256 collateralIn, uint256 sharesMinted
     );
-    event MarketResolved(
-        uint256 indexed marketId,
-        bool outcome,
-        uint256 disputeDeadline
-    );
+    event MarketResolved(uint256 indexed marketId, bool outcome, uint256 disputeDeadline);
     event MarketDisputed(uint256 indexed marketId, address indexed disputer);
     event MarketFinalized(uint256 indexed marketId, bool outcome);
-    event SharesRedeemed(
-        uint256 indexed marketId,
-        address indexed redeemer,
-        uint256 sharesIn,
-        uint256 collateralOut
-    );
+    event SharesRedeemed(uint256 indexed marketId, address indexed redeemer, uint256 sharesIn, uint256 collateralOut);
 
     //constructor/initializer
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -125,11 +102,7 @@ contract PredictionMarket is
     }
 
     //market lifecycle
-    function createMarket(
-        string calldata question_,
-        uint256 resolutionTime_,
-        address oracleAdapter_
-    )
+    function createMarket(string calldata question_, uint256 resolutionTime_, address oracleAdapter_)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
         whenNotPaused
@@ -146,20 +119,14 @@ contract PredictionMarket is
         m.oracleAdapter = oracleAdapter_;
         m.state = MarketState.Active;
 
-        emit MarketCreated(
-            marketId,
-            question_,
-            resolutionTime_,
-            oracleAdapter_
-        );
+        emit MarketCreated(marketId, question_, resolutionTime_, oracleAdapter_);
     }
 
-    function buyShares(
-        uint256 marketId,
-        bool isYes,
-        uint256 amountIn,
-        uint256 minShares
-    ) external nonReentrant whenNotPaused {
+    function buyShares(uint256 marketId, bool isYes, uint256 amountIn, uint256 minShares)
+        external
+        nonReentrant
+        whenNotPaused
+    {
         // Checks
         Market storage m = markets[marketId];
         require(m.state == MarketState.Active, "PM: market not active");
@@ -190,10 +157,7 @@ contract PredictionMarket is
         emit SharesBought(marketId, msg.sender, isYes, amountIn, netAmount);
     }
 
-    function resolveMarket(
-        uint256 marketId,
-        bool outcome
-    ) external onlyRole(RESOLVER_ROLE) nonReentrant whenNotPaused {
+    function resolveMarket(uint256 marketId, bool outcome) external onlyRole(RESOLVER_ROLE) nonReentrant whenNotPaused {
         Market storage m = markets[marketId];
         require(m.state == MarketState.Active, "PM: not active");
         require(block.timestamp >= m.resolutionTime, "PM: too early");
@@ -226,10 +190,7 @@ contract PredictionMarket is
         emit MarketFinalized(marketId, m.outcome);
     }
 
-    function settleDispute(
-        uint256 marketId,
-        bool forcedOutcome
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
+    function settleDispute(uint256 marketId, bool forcedOutcome) external onlyRole(DEFAULT_ADMIN_ROLE) whenNotPaused {
         Market storage m = markets[marketId];
         require(m.state == MarketState.Disputed, "PM: not disputed");
 
@@ -238,10 +199,7 @@ contract PredictionMarket is
         emit MarketFinalized(marketId, forcedOutcome);
     }
 
-    function redeemShares(
-        uint256 marketId,
-        uint256 amount
-    ) external nonReentrant whenNotPaused {
+    function redeemShares(uint256 marketId, uint256 amount) external nonReentrant whenNotPaused {
         // checks
         Market storage m = markets[marketId];
         require(m.state == MarketState.Final, "PM: not final");
@@ -267,6 +225,7 @@ contract PredictionMarket is
     function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
+
     function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
@@ -276,10 +235,12 @@ contract PredictionMarket is
         require(v != address(0), "PM: zero");
         feeVault = v;
     }
+
     function setStaleness(uint256 s) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(s > 0, "PM: zero");
         defaultStaleness = s;
     }
+
     function setDisputeWindow(uint256 w) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(w > 0, "PM: zero");
         defaultDisputeWindow = w;
@@ -290,9 +251,7 @@ contract PredictionMarket is
     }
 
     // UUPS upgrade authorization
-    function _authorizeUpgrade(
-        address
-    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function _authorizeUpgrade(address) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     // storage gap for future V1 additions (V2 appends after this)
     uint256[44] private __gap;
