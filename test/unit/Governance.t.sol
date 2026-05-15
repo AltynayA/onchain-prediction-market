@@ -140,5 +140,4 @@ contract MarketGovernorTest is Test {
         vm.expectRevert();
         governor.propose(targets, values, calldatas, "test");
     }
- 
 }
