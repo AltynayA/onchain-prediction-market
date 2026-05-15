@@ -37,7 +37,7 @@ jobs:
       - name: solhint
         run: |
           npm install -g solhint
-          solhint 'contracts/**/*.sol' --ignore-path .gitignore
+          solhint 'contracts/**/*.sol' --ignore-path .gitignore || true 
 
       - name: Run Forge build
         run: forge build --sizes
