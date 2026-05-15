@@ -122,7 +122,7 @@ contract MarketGovernorTest is Test {
         // 4% of 1 mil ether
         assertEq(governor.quorum(block.number - 1), 40_000 ether);
     }
-    
+
     function test_propose_belowThreshold_reverts() public {
         address poor = makeAddr("poor");
         vm.prank(liquidity);
