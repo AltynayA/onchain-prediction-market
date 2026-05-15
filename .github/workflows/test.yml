@@ -34,6 +34,11 @@ jobs:
       - name: Run Forge fmt
         run: forge fmt --check
 
+      - name: solhint
+        run: |
+          npm install -g solhint
+          solhint 'contracts/**/*.sol' --ignore-path .gitignore
+
       - name: Run Forge build
         run: forge build --sizes
 
