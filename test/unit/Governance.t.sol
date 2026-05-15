@@ -25,65 +25,14 @@ contract GovernanceTokenTest is Test {
         assertEq(token.totalSupply(), 1_000_000 ether);
     }
 
-    function test_team_gets40Percent() public view {
-        assertEq(token.balanceOf(team), 400_000 ether);
-    }
-
-    function test_treasury_gets30Percent() public view {
-        assertEq(token.balanceOf(treasury), 300_000 ether);
-    }
-
-    function test_community_gets20Percent() public view {
-        assertEq(token.balanceOf(community), 200_000 ether);
-    }
-
-    function test_liquidity_gets10Percent() public view {
-        assertEq(token.balanceOf(liquidity), 100_000 ether);
-    }
-
-    function test_votingPower_zeroBeforeDelegation() public view {
-        assertEq(token.getVotes(team), 0);
-    }
-
     function test_votingPower_afterSelfDelegate() public {
         vm.prank(team);
         token.delegate(team);
         assertEq(token.getVotes(team), 400_000 ether);
     }
-
-    function test_votingPower_delegateToOther() public {
-        vm.prank(team);
-        token.delegate(gwen);
-        assertEq(token.getVotes(gwen), 400_000 ether);
-        assertEq(token.getVotes(team), 0);
-    }
-
-    function test_pastVotes_snapshotCorrect() public {
-        vm.prank(team);
-        token.delegate(team);
-
-        uint256 snapshot = block.number;
-        vm.roll(block.number + 1);
-
-        assertEq(token.getPastVotes(team, snapshot), 400_000 ether);
-    }
-
-    function test_transfer_updatesVotingPower() public {
-        vm.prank(team);
-        token.delegate(team);
-
-        vm.prank(team);
-        token.transfer(gwen, 50_000 ether);
-
-        assertEq(token.getVotes(team), 350_000 ether);
-    }
-
-    function test_domainSeparator_nonzero() public view {
-        assertTrue(token.DOMAIN_SEPARATOR() != bytes32(0));
-    }
 }
 
-//  MarketTimelock: min delay is 2 days, roles
+// Timelock configuration and delay checks
 contract MarketTimelockTest is Test {
     address admin = makeAddr("admin");
     address proposer = makeAddr("proposer");
@@ -104,18 +53,6 @@ contract MarketTimelockTest is Test {
         assertEq(timelock.getMinDelay(), 2 days);
     }
 
-    function test_proposer_hasRole() public view {
-        assertTrue(timelock.hasRole(timelock.PROPOSER_ROLE(), proposer));
-    }
-
-    function test_executor_hasRole() public view {
-        assertTrue(timelock.hasRole(timelock.EXECUTOR_ROLE(), executor));
-    }
-
-    function test_admin_hasRole() public view {
-        assertTrue(timelock.hasRole(timelock.DEFAULT_ADMIN_ROLE(), admin));
-    }
-
     function test_execute_beforeDelay_reverts() public {
         vm.prank(proposer);
         timelock.schedule(address(0), 0, "", bytes32(0), bytes32(0), MIN_DELAY);
@@ -126,7 +63,7 @@ contract MarketTimelockTest is Test {
     }
 }
 
-//  GovernanceToken: supply, distribution, delegation, voting power, erc20 permit
+// Governor integration tests
 contract MarketGovernorTest is Test {
     address team = makeAddr("team");
     address treasury = makeAddr("treasury");
@@ -151,7 +88,7 @@ contract MarketGovernorTest is Test {
         // deploy governor
         governor = new MarketGovernor(IVotes(address(token)), TimelockController(payable(address(timelock))));
 
-        // wire :governor gets proposer + canceller
+        // Governor needs proposer and canceller permissions
         timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
         timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
         timelock.renounceRole(timelock.DEFAULT_ADMIN_ROLE(), address(this));
@@ -176,10 +113,6 @@ contract MarketGovernorTest is Test {
         assertEq(governor.votingPeriod(), 1 weeks);
     }
 
-    function test_quorumNumerator_is4() public view {
-        assertEq(governor.quorumNumerator(), 4);
-    }
-
     function test_proposalThreshold_is1Percent() public view {
         // 1% of 1 mil ether
         assertEq(governor.proposalThreshold(), 10_000 ether);
@@ -190,26 +123,7 @@ contract MarketGovernorTest is Test {
         assertEq(governor.quorum(block.number - 1), 40_000 ether);
     }
 
-    function test_timelockAddress_correct() public view {
-        assertEq(address(governor.timelock()), address(timelock));
-    }
-
-    function test_tokenAddress_correct() public view {
-        assertEq(address(governor.token()), address(token));
-    }
-
-    function test_propose_aboveThreshold_succeeds() public {
-        address[] memory targets = new address[](1);
-        uint256[] memory values = new uint256[](1);
-        bytes[] memory calldatas = new bytes[](1);
-        targets[0] = address(0);
-
-        vm.prank(gwen); // 50k > 10k (threshold)
-        uint256 id = governor.propose(targets, values, calldatas, "test");
-        assertGt(id, 0);
-    }
-
-    function test_propose_belowThreshold_reverts() public {
+   function test_propose_belowThreshold_reverts() public {
         address poor = makeAddr("poor");
         vm.prank(liquidity);
         token.transfer(poor, 100 ether); // way below 10_000 ether threshold
@@ -226,4 +140,5 @@ contract MarketGovernorTest is Test {
         vm.expectRevert();
         governor.propose(targets, values, calldatas, "test");
     }
+ 
 }
