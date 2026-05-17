@@ -1,0 +1,20 @@
+{
+    "exclude-dependencies": true,
+    "filter_paths": "lib/,test/",
+    "fail-on": "medium",
+    "exclude-low": true,
+    "exclude-informational": true,
+    "detectors-to-exclude": [
+        "unindexed-event-address",
+        "unused-state",
+        "immutable-states",
+        "naming-convention",
+        "pragma",
+        "solc-version",
+        "dead-code",
+        "missing-inheritance",
+        "shadowing-local",
+        "unused-return",
+        "too-many-digits"
+    ]
+}

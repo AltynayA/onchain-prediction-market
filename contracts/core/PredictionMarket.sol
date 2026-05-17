@@ -212,9 +212,11 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
         uint256 collateralOut = (amount * m.totalCollateral) / totalWin;
         require(collateralOut > 0, "PM: zero payout");
 
+        //effects
+        m.totalCollateral -= collateralOut;
+
         // effects before interactions (CEI)
         outcomeToken.burn(msg.sender, winningId, amount);
-        m.totalCollateral -= collateralOut;
 
         // interactions
         collateral.safeTransfer(msg.sender, collateralOut);

@@ -56,8 +56,11 @@ jobs:
       - name: forge snapshot check
         run: forge snapshot --match-contract YulBenchmark --check
  
-      - name: slither
-        run: |
-          pip3 install slither-analyzer
-          slither contracts/ --exclude-dependencies --fail-on high || true
+      - name: Install Slither
+        run: pip3 install slither-analyzer --upgrade --force-reinstall
+
+      - name: Run Slither
+        run: python3 -m slither contracts/ --config-file .slither.json --foundry-compile-all
+        continue-on-error: false
+
  
