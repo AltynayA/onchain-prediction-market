@@ -206,13 +206,14 @@ Pages:
 
 ## Subgraph
 
-> To be completed by Member C.
+Deployed on Goldsky (Base Sepolia) — status: **Live**
 
-The Graph subgraph will index:
-- `MarketCreated`, `SharesBought`, `MarketResolved`
-- `ProposalCreated`, `VoteCast`
-- `LiquidityAdded`, `Swap`
+**GraphQL endpoint:**
+https://api.goldsky.com/api/public/project_cmp9m4o9exste01uedkt57uez/subgraphs/prediction-market/1.0.0/gn
 
+Entities: Market · Trade · Proposal · Vote · LPPosition
+
+See `subgraph/README.md` for 5 documented GraphQL queries.
 ---
 
 ## CI/CD
@@ -244,8 +245,6 @@ See `docs/audit-report.md` for full findings.
 ---
 
 ## Documentation
-
-> To be completed by Member C.
 
 - `docs/architecture.md` — system diagrams, storage layout, design pattern ADRs
 - `docs/audit-report.md` — security findings and mitigations
