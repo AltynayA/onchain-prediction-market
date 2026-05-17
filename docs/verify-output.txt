@@ -1,0 +1,96 @@
+No files changed, compilation skipped
+Warning: Detected artifacts built from source files that no longer exist. Run `forge clean` to make sure builds are in sync with project files.
+ - /Users/altynaiayazbayeva/onchain-prediciton-market/test/unit/CPMM.t.sol
+ - /Users/altynaiayazbayeva/onchain-prediciton-market/test/unit/YulHelpers.t.sol
+Traces:
+  [60710] Verify::run()
+    ├─ [0] VM::envAddress("MARKET_ADDRESS") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::envAddress("TIMELOCK_ADDRESS") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::envAddress("GOVERNOR_ADDRESS") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::envAddress("DEPLOYER_ADDRESS") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] console::log("post-deployment verification") [staticcall]
+    │   └─ ← [Stop]
+    ├─ [5119] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::DEFAULT_ADMIN_ROLE() [staticcall]
+    │   ├─ [238] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::DEFAULT_ADMIN_ROLE() [delegatecall]
+    │   │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000000000
+    │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000000000
+    ├─ [3156] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::hasRole(0x0000000000000000000000000000000000000000000000000000000000000000, 0xE699943a7d8b351E8c30064dB3511278D5f58042) [staticcall]
+    │   ├─ [2769] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::hasRole(0x0000000000000000000000000000000000000000000000000000000000000000, 0xE699943a7d8b351E8c30064dB3511278D5f58042) [delegatecall]
+    │   │   └─ ← [Return] true
+    │   └─ ← [Return] true
+    ├─ [0] console::log("timelock is market admin:      ", true) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [619] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::DEFAULT_ADMIN_ROLE() [staticcall]
+    │   ├─ [238] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::DEFAULT_ADMIN_ROLE() [delegatecall]
+    │   │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000000000
+    │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000000000
+    ├─ [3156] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::hasRole(0x0000000000000000000000000000000000000000000000000000000000000000, 0x90F79bf6EB2c4f870365E785982E1f101E93b906) [staticcall]
+    │   ├─ [2769] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::hasRole(0x0000000000000000000000000000000000000000000000000000000000000000, 0x90F79bf6EB2c4f870365E785982E1f101E93b906) [delegatecall]
+    │   │   └─ ← [Return] false
+    │   └─ ← [Return] false
+    ├─ [0] console::log("deployer has market admin:     ", false) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2401] 0xE699943a7d8b351E8c30064dB3511278D5f58042::getMinDelay() [staticcall]
+    │   └─ ← [Return] 172800 [1.728e5]
+    ├─ [0] console::log("timelock min delay (seconds):  ", 172800 [1.728e5]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [284] 0xE699943a7d8b351E8c30064dB3511278D5f58042::PROPOSER_ROLE() [staticcall]
+    │   └─ ← [Return] 0xb09aa5aeb3702cfd50b6b62bc4532604938f21248a27a1d5ca736082b6819cc1
+    ├─ [2692] 0xE699943a7d8b351E8c30064dB3511278D5f58042::hasRole(0xb09aa5aeb3702cfd50b6b62bc4532604938f21248a27a1d5ca736082b6819cc1, 0xBdF66e0A87a5759444ec0b585BDf581Ce3Ef309E) [staticcall]
+    │   └─ ← [Return] true
+    ├─ [0] console::log("governor is timelock proposer: ", true) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [260] 0xE699943a7d8b351E8c30064dB3511278D5f58042::DEFAULT_ADMIN_ROLE() [staticcall]
+    │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000000000
+    ├─ [2692] 0xE699943a7d8b351E8c30064dB3511278D5f58042::hasRole(0x0000000000000000000000000000000000000000000000000000000000000000, 0x90F79bf6EB2c4f870365E785982E1f101E93b906) [staticcall]
+    │   └─ ← [Return] false
+    ├─ [0] console::log("deployer has timelock admin:   ", false) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2468] 0xBdF66e0A87a5759444ec0b585BDf581Ce3Ef309E::votingDelay() [staticcall]
+    │   └─ ← [Return] 86400 [8.64e4]
+    ├─ [372] 0xBdF66e0A87a5759444ec0b585BDf581Ce3Ef309E::votingPeriod() [staticcall]
+    │   └─ ← [Return] 604800 [6.048e5]
+    ├─ [4738] 0xBdF66e0A87a5759444ec0b585BDf581Ce3Ef309E::quorumNumerator() [staticcall]
+    │   └─ ← [Return] 4
+    ├─ [0] console::log("voting delay (seconds):        ", 86400 [8.64e4]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("voting period (seconds):       ", 604800 [6.048e5]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("quorum fraction (%):           ", 4) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [2721] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::defaultStaleness() [staticcall]
+    │   ├─ [2340] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::defaultStaleness() [delegatecall]
+    │   │   └─ ← [Return] 3600
+    │   └─ ← [Return] 3600
+    ├─ [2721] 0x0cEC8fd1fD75bFe985807BeEEC1ACdaBE1784bB7::defaultDisputeWindow() [staticcall]
+    │   ├─ [2340] 0x712F373B113ea2C1d8880aF01d388DA7F25F6d9C::defaultDisputeWindow() [delegatecall]
+    │   │   └─ ← [Return] 172800 [1.728e5]
+    │   └─ ← [Return] 172800 [1.728e5]
+    ├─ [0] console::log("oracle staleness (seconds):    ", 3600) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("dispute window (seconds):      ", 172800 [1.728e5]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("all checks passed ") [staticcall]
+    │   └─ ← [Stop]
+    └─ ← [Stop]
+
+
+Script ran successfully.
+
+== Logs ==
+  post-deployment verification
+  timelock is market admin:       true
+  deployer has market admin:      false
+  timelock min delay (seconds):   172800
+  governor is timelock proposer:  true
+  deployer has timelock admin:    false
+  voting delay (seconds):         86400
+  voting period (seconds):        604800
+  quorum fraction (%):            4
+  oracle staleness (seconds):     3600
+  dispute window (seconds):       172800
+  all checks passed 
