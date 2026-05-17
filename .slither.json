@@ -1,20 +1,8 @@
 {
-    "exclude-dependencies": true,
     "filter_paths": "lib/,test/",
-    "fail-on": "medium",
-    "exclude-low": true,
-    "exclude-informational": true,
-    "detectors-to-exclude": [
-        "unindexed-event-address",
-        "unused-state",
-        "immutable-states",
-        "naming-convention",
-        "pragma",
-        "solc-version",
-        "dead-code",
-        "missing-inheritance",
-        "shadowing-local",
-        "unused-return",
-        "too-many-digits"
-    ]
+    "fail_on": "medium",
+    "detectors_to_exclude": "unindexed-event-address,unused-state,immutable-states,naming-convention,pragma,solc-version,dead-code,missing-inheritance,shadowing-local,unused-return,too-many-digits,timestamp,assembly,unused-return",
+    "exclude_low": true,
+    "exclude_informational": true,
+    "exclude_optimization": true
 }

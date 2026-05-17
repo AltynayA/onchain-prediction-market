@@ -13,8 +13,8 @@ contract MarketFactory is AccessControl {
     address public immutable implementation;
 
     // shared dependencies passed to every deployed market
-    address public collateral;
-    address public outcomeToken;
+    address public immutable collateral;
+    address public immutable outcomeToken;
     address public feeVault;
     uint256 public defaultStaleness;
     uint256 public defaultDisputeWindow;

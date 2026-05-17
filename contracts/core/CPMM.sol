@@ -9,8 +9,6 @@ import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Re
 // x*y = k, with 0.3% fee
 contract CPMM is ReentrancyGuard, IERC1155Receiver {
     //constants
-    uint256 private constant FEE_NUMERATOR = 997; // 0.3% fee -> multiply input by 997/1000
-    uint256 private constant FEE_DENOMINATOR = 1000;
     uint256 private constant MINIMUM_LIQUIDITY = 1000; // locked forever to prevent div/0
 
     uint256 private constant YES = 0; // ERC-1155 token id for YES shares
@@ -169,11 +167,6 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
             let denominator := add(mul(resIn, 1000), amountInWithFee)
             out := div(numerator, denominator)
         }
-    }
-
-    function _getAmountOutSolidity(uint256 amountIn, uint256 resIn, uint256 resOut) internal pure returns (uint256) {
-        uint256 amountInWithFee = amountIn * 997;
-        return (amountInWithFee * resOut) / (resIn * 1000 + amountInWithFee);
     }
 
     function _sqrt(uint256 y) internal pure returns (uint256 z) {

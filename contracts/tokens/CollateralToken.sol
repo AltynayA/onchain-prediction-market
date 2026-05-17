@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 // tests: anyone can mint
 // on testnet: owner mints to funded wallets
 contract CollateralToken is ERC20, Ownable {
-    uint8 private _decimals;
+    uint8 private immutable _decimals;
 
     constructor(string memory name, string memory symbol, uint8 decimals_) ERC20(name, symbol) Ownable(msg.sender) {
         _decimals = decimals_;
