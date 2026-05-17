@@ -48,7 +48,7 @@ const GOVERNOR_ABI = [
 ];
 
 // subgraph endpoint (The Graph — Base Sepolia)
-const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/YOUR_ID/prediction-market/version/latest";
+const SUBGRAPH_URL = "https://api.goldsky.com/api/public/project_cmp9m4o9exste01uedkt57uez/subgraphs/prediction-market/1.0.0/gn";
 
 const MARKET_STATES = ["Active", "Pending", "Disputed", "Final"];
 
