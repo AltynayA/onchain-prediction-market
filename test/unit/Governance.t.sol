@@ -32,7 +32,7 @@ contract GovernanceTokenTest is Test {
     }
 }
 
-// Timelock configuration and delay checks
+// timelock config and delay checks
 contract MarketTimelockTest is Test {
     address admin = makeAddr("admin");
     address proposer = makeAddr("proposer");
@@ -63,7 +63,7 @@ contract MarketTimelockTest is Test {
     }
 }
 
-// Governor integration tests
+// governor integration tests
 contract MarketGovernorTest is Test {
     address team = makeAddr("team");
     address treasury = makeAddr("treasury");
@@ -88,7 +88,7 @@ contract MarketGovernorTest is Test {
         // deploy governor
         governor = new MarketGovernor(IVotes(address(token)), TimelockController(payable(address(timelock))));
 
-        // Governor needs proposer and canceller permissions
+        // governor needs proposer and canceller permissions
         timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
         timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
         timelock.renounceRole(timelock.DEFAULT_ADMIN_ROLE(), address(this));

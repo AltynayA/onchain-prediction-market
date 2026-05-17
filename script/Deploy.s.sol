@@ -54,7 +54,7 @@ contract Deploy is Script {
         console.log("FeeVault:       ", address(feeVault));
 
         // 4) prediction market implementation + proxy
-        //    deployer is temporary admin —> transferred to timelock in step 10
+        //    deployer is temporary admin,so transferred to timelock in step 10
         PredictionMarket impl = new PredictionMarket();
         PredictionMarket market = PredictionMarket(
             address(
@@ -129,7 +129,7 @@ contract Deploy is Script {
         market.grantRole(market.DEFAULT_ADMIN_ROLE(), address(timelock));
         market.revokeRole(market.DEFAULT_ADMIN_ROLE(), deployer);
 
-        // timelock: renounce deployer admin —> timelock is now self-governed
+        // timelock: renounce deployer admin so timelock is now self-governed
         timelock.renounceRole(timelock.DEFAULT_ADMIN_ROLE(), deployer);
 
         vm.stopBroadcast();

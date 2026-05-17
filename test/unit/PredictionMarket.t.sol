@@ -2,7 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {
+    ERC1967Proxy
+} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {PredictionMarket} from "../../contracts/core/PredictionMarket.sol";
 import {PredictionMarketV2} from "../../contracts/core/PredictionMarketV2.sol";
@@ -42,21 +44,30 @@ contract PredictionMarketTest is Test {
         oracle = new OracleAdapter(address(aggregator));
         feeVault = new FeeVault(collateral);
 
-        // Deploy implementation + proxy
+        // deploy implementation + proxy
         PredictionMarket impl = new PredictionMarket();
         bytes memory initData = abi.encodeCall(
             PredictionMarket.initialize,
-            (admin, address(collateral), address(outcomeToken), STALENESS, DISPUTE_W, address(feeVault))
+            (
+                admin,
+                address(collateral),
+                address(outcomeToken),
+                STALENESS,
+                DISPUTE_W,
+                address(feeVault)
+            )
         );
-        market = PredictionMarket(address(new ERC1967Proxy(address(impl), initData)));
+        market = PredictionMarket(
+            address(new ERC1967Proxy(address(impl), initData))
+        );
 
-        // Grant market permission to mint/burn outcome shares
+        // grant market permission to mint/burn outcome shares
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
 
-        // Give resolver role
+        // give resolver role
         market.grantRole(market.RESOLVER_ROLE(), resolver);
 
-        // Fund alice and bob
+        // fund alice and bob
         collateral.mint(alice, 10_000e6);
         collateral.mint(bob, 10_000e6);
         vm.stopPrank();
@@ -70,7 +81,11 @@ contract PredictionMarketTest is Test {
     //helpers
     function _createMarket() internal returns (uint256 id) {
         vm.prank(admin);
-        id = market.createMarket("Will ETH > $5000 by Jan 2026?", block.timestamp + RES_OFFSET, address(oracle));
+        id = market.createMarket(
+            "Will ETH > $5000 by Jan 2026?",
+            block.timestamp + RES_OFFSET,
+            address(oracle)
+        );
     }
 
     function _buyAndResolve(bool outcome) internal returns (uint256 id) {
@@ -225,7 +240,7 @@ contract PredictionMarketTest is Test {
         market.buyShares(id, true, 1000e6, 0);
     }
 
-    //resolveMarket — VULN-02 reproduced and fixed
+    //resolveMarket: vuln #2 (access control) fixed
     function test_resolveMarket_success() public {
         uint256 id = _createMarket();
         vm.prank(alice);
@@ -242,7 +257,7 @@ contract PredictionMarketTest is Test {
         assertGt(m.disputeDeadline, block.timestamp);
     }
 
-    //VULN-02: Before fix, anyone could call resolveMarket
+    // before fix, anyone could call resolveMarket
     function test_resolveMarket_revert_notResolver() public {
         uint256 id = _createMarket();
         vm.warp(block.timestamp + RES_OFFSET + 1);
@@ -283,7 +298,10 @@ contract PredictionMarketTest is Test {
         vm.prank(bob);
         market.disputeMarket(id);
 
-        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Disputed));
+        assertEq(
+            uint8(market.getMarket(id).state),
+            uint8(PredictionMarket.MarketState.Disputed)
+        );
     }
 
     function test_disputeMarket_revert_windowExpired() public {
@@ -306,7 +324,10 @@ contract PredictionMarketTest is Test {
         vm.warp(block.timestamp + DISPUTE_W + 1);
         market.finalizeMarket(id);
 
-        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Final));
+        assertEq(
+            uint8(market.getMarket(id).state),
+            uint8(PredictionMarket.MarketState.Final)
+        );
     }
 
     function test_finalizeMarket_revert_windowNotOver() public {
@@ -346,7 +367,7 @@ contract PredictionMarketTest is Test {
         market.settleDispute(id, true);
     }
 
-    // redeemShares — VULN-01 reentrancy reproduced and fixed
+    // redeemShares: vuln #1 (reentrancy) reproduced and fixed
     function test_redeemShares_yesWinner() public {
         uint256 id = _buyAndResolve(true); // YES wins
         _finalize(id);
@@ -381,14 +402,11 @@ contract PredictionMarketTest is Test {
     }
 
     function test_redeemShares_losingSideGetsNothing() public {
-        uint256 id = _buyAndResolve(true); // YES wins -> bob (NO) loses
+        uint256 id = _buyAndResolve(true); // YES wins,  bob (NO) loses
         _finalize(id);
 
-        // bob holds NO shares (token id 1) — but they are worthless
-        // trying to redeem YES shares bob doesn't have should fail differently,
-        // so we confirm bob's NO balance is non-zero and collateral unchanged
         uint256 bobCollateralBefore = collateral.balanceOf(bob);
-        // bob has no YES shares to redeem — balance stays same
+        // bob has no YES shares: collateral unchanged
         assertEq(outcomeToken.balanceOf(bob, 0), 0);
         assertEq(collateral.balanceOf(bob), bobCollateralBefore);
     }
@@ -427,7 +445,7 @@ contract PredictionMarketTest is Test {
         market.redeemShares(id, 1);
     }
 
-    // Pausable (C5)
+    //  adding pausable
     function test_pause_blocksAllUserFunctions() public {
         uint256 id = _createMarket();
         vm.prank(admin);
@@ -455,7 +473,7 @@ contract PredictionMarketTest is Test {
         market.pause();
     }
 
-    // V1 -> V2 upgrade (C4)
+    // v1 to v2 upgrade
     function test_upgrade_v1_to_v2_preservesState() public {
         uint256 id = _createMarket();
         vm.prank(alice);
@@ -463,21 +481,27 @@ contract PredictionMarketTest is Test {
 
         uint256 countBefore = market.marketCount();
 
-        // Deploy V2 and upgrade
+        // deploy V2 and upgrade
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
+        market.upgradeToAndCall(
+            address(implV2),
+            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
+        );
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
 
-        // V1 state fully preserved
+        // v1 state fully preserved
         assertEq(marketV2.marketCount(), countBefore);
         assertEq(marketV2.defaultStaleness(), STALENESS);
         assertEq(marketV2.defaultDisputeWindow(), DISPUTE_W);
-        assertEq(uint8(marketV2.getMarket(id).state), uint8(PredictionMarket.MarketState.Active));
+        assertEq(
+            uint8(marketV2.getMarket(id).state),
+            uint8(PredictionMarket.MarketState.Active)
+        );
 
-        // V2 state initialised
+        // v2 state initialised
         assertEq(marketV2.emergencyRecipient(), admin);
     }
 
@@ -486,17 +510,20 @@ contract PredictionMarketTest is Test {
 
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
+        market.upgradeToAndCall(
+            address(implV2),
+            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
+        );
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
 
-        // Set per-market fee
+        // set fee per market
         vm.prank(admin);
         marketV2.setMarketFee(id, 50); // 0.5%
         assertEq(marketV2.effectiveFee(id), 50);
 
-        // Fallback to global when not set
+        // fallback to global if not set
         assertEq(marketV2.effectiveFee(999), 100); // global FEE_BPS
     }
 
@@ -507,7 +534,7 @@ contract PredictionMarketTest is Test {
         market.upgradeToAndCall(address(implV2), "");
     }
 
-    // Admin setters
+    // admin setters
     function test_setStaleness() public {
         vm.prank(admin);
         market.setStaleness(2 hours);
@@ -539,4 +566,3 @@ contract PredictionMarketTest is Test {
         market.setFeeVault(address(0));
     }
 }
-
