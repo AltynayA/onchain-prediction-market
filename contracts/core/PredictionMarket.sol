@@ -127,13 +127,13 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
         nonReentrant
         whenNotPaused
     {
-        // Checks
+        // checks
         Market storage m = markets[marketId];
         require(m.state == MarketState.Active, "PM: market not active");
         require(block.timestamp < m.resolutionTime, "PM: past resolution time");
         require(amountIn > 0, "PM: zero amount");
 
-        // fee in Yul (benchmarked in YulHelpers.calcFeeYul)
+        // fee in Yul (benchmarked in yulhelpers)
         uint256 fee;
         assembly {
             fee := div(mul(amountIn, 100), 10000)
@@ -141,7 +141,7 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
         uint256 netAmount = amountIn - fee;
         require(netAmount >= minShares, "PM: slippage");
 
-        // effects — all state updated before any external call (CEI)
+        // effects: all state updated before any external call (CEI)
         m.totalCollateral += netAmount;
         if (isYes) {
             m.yesShares += netAmount;
@@ -149,7 +149,7 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
             m.noShares += netAmount;
         }
 
-        // Interactions
+        // interactions
         collateral.safeTransferFrom(msg.sender, address(this), amountIn);
         if (fee > 0) collateral.safeTransfer(feeVault, fee);
         outcomeToken.mint(msg.sender, isYes ? 0 : 1, netAmount);

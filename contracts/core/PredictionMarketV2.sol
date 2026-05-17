@@ -49,7 +49,7 @@ contract PredictionMarketV2 is PredictionMarket {
         emit MarketFeeSet(marketId, feeBps_);
     }
 
-    //Returns the effective fee for a market. If market-specific fee is set, returns that; otherwise returns global FEE_BPS.
+    // returns market fee or global fee
     function effectiveFee(uint256 marketId) public view returns (uint256) {
         uint256 override_ = marketFeeBps[marketId];
         return override_ > 0 ? override_ : FEE_BPS;
@@ -62,6 +62,6 @@ contract PredictionMarketV2 is PredictionMarket {
         emit EmergencyRecipientSet(recipient_);
     }
 
-    //Storage gap — keeps future V2 point-releases from colliding with V3
+    // storage gap so v2 and v3 releases don't collide
     uint256[42] private __gapV2;
 }

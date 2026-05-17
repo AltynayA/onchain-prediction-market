@@ -2,9 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import {
-    ERC1967Proxy
-} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {PredictionMarket} from "../../contracts/core/PredictionMarket.sol";
 import {PredictionMarketV2} from "../../contracts/core/PredictionMarketV2.sol";
@@ -48,18 +46,9 @@ contract PredictionMarketTest is Test {
         PredictionMarket impl = new PredictionMarket();
         bytes memory initData = abi.encodeCall(
             PredictionMarket.initialize,
-            (
-                admin,
-                address(collateral),
-                address(outcomeToken),
-                STALENESS,
-                DISPUTE_W,
-                address(feeVault)
-            )
+            (admin, address(collateral), address(outcomeToken), STALENESS, DISPUTE_W, address(feeVault))
         );
-        market = PredictionMarket(
-            address(new ERC1967Proxy(address(impl), initData))
-        );
+        market = PredictionMarket(address(new ERC1967Proxy(address(impl), initData)));
 
         // grant market permission to mint/burn outcome shares
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
@@ -81,11 +70,7 @@ contract PredictionMarketTest is Test {
     //helpers
     function _createMarket() internal returns (uint256 id) {
         vm.prank(admin);
-        id = market.createMarket(
-            "Will ETH > $5000 by Jan 2026?",
-            block.timestamp + RES_OFFSET,
-            address(oracle)
-        );
+        id = market.createMarket("Will ETH > $5000 by Jan 2026?", block.timestamp + RES_OFFSET, address(oracle));
     }
 
     function _buyAndResolve(bool outcome) internal returns (uint256 id) {
@@ -298,10 +283,7 @@ contract PredictionMarketTest is Test {
         vm.prank(bob);
         market.disputeMarket(id);
 
-        assertEq(
-            uint8(market.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Disputed)
-        );
+        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Disputed));
     }
 
     function test_disputeMarket_revert_windowExpired() public {
@@ -324,10 +306,7 @@ contract PredictionMarketTest is Test {
         vm.warp(block.timestamp + DISPUTE_W + 1);
         market.finalizeMarket(id);
 
-        assertEq(
-            uint8(market.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Final)
-        );
+        assertEq(uint8(market.getMarket(id).state), uint8(PredictionMarket.MarketState.Final));
     }
 
     function test_finalizeMarket_revert_windowNotOver() public {
@@ -484,10 +463,7 @@ contract PredictionMarketTest is Test {
         // deploy V2 and upgrade
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(
-            address(implV2),
-            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
-        );
+        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
@@ -496,10 +472,7 @@ contract PredictionMarketTest is Test {
         assertEq(marketV2.marketCount(), countBefore);
         assertEq(marketV2.defaultStaleness(), STALENESS);
         assertEq(marketV2.defaultDisputeWindow(), DISPUTE_W);
-        assertEq(
-            uint8(marketV2.getMarket(id).state),
-            uint8(PredictionMarket.MarketState.Active)
-        );
+        assertEq(uint8(marketV2.getMarket(id).state), uint8(PredictionMarket.MarketState.Active));
 
         // v2 state initialised
         assertEq(marketV2.emergencyRecipient(), admin);
@@ -510,10 +483,7 @@ contract PredictionMarketTest is Test {
 
         vm.startPrank(admin);
         PredictionMarketV2 implV2 = new PredictionMarketV2();
-        market.upgradeToAndCall(
-            address(implV2),
-            abi.encodeCall(PredictionMarketV2.initializeV2, (admin))
-        );
+        market.upgradeToAndCall(address(implV2), abi.encodeCall(PredictionMarketV2.initializeV2, (admin)));
         vm.stopPrank();
 
         PredictionMarketV2 marketV2 = PredictionMarketV2(address(market));
