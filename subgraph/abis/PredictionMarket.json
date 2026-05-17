@@ -1,0 +1,14 @@
+[
+  {"type":"event","name":"MarketCreated","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"question","type":"string","indexed":false},{"name":"resolutionTime","type":"uint256","indexed":false},{"name":"oracleAdapter","type":"address","indexed":false}]},
+  {"type":"event","name":"SharesBought","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"buyer","type":"address","indexed":true},{"name":"isYes","type":"bool","indexed":false},{"name":"collateralIn","type":"uint256","indexed":false},{"name":"sharesMinted","type":"uint256","indexed":false}]},
+  {"type":"event","name":"MarketResolved","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"outcome","type":"bool","indexed":false},{"name":"disputeDeadline","type":"uint256","indexed":false}]},
+  {"type":"event","name":"MarketDisputed","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"disputer","type":"address","indexed":true}]},
+  {"type":"event","name":"MarketFinalized","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"outcome","type":"bool","indexed":false}]},
+  {"type":"event","name":"SharesRedeemed","anonymous":false,"inputs":[{"name":"marketId","type":"uint256","indexed":true},{"name":"redeemer","type":"address","indexed":true},{"name":"sharesIn","type":"uint256","indexed":false},{"name":"collateralOut","type":"uint256","indexed":false}]},
+  {"type":"function","name":"getMarket","stateMutability":"view","inputs":[{"name":"marketId","type":"uint256"}],"outputs":[{"components":[{"name":"question","type":"string"},{"name":"resolutionTime","type":"uint256"},{"name":"disputeDeadline","type":"uint256"},{"name":"totalCollateral","type":"uint256"},{"name":"yesShares","type":"uint256"},{"name":"noShares","type":"uint256"},{"name":"state","type":"uint8"},{"name":"outcome","type":"bool"},{"name":"oracleAdapter","type":"address"}],"type":"tuple"}]},
+  {"type":"function","name":"buyShares","stateMutability":"nonpayable","inputs":[{"name":"marketId","type":"uint256"},{"name":"isYes","type":"bool"},{"name":"amountIn","type":"uint256"},{"name":"minShares","type":"uint256"}],"outputs":[]},
+  {"type":"function","name":"marketCount","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
+  {"type":"function","name":"createMarket","stateMutability":"nonpayable","inputs":[{"name":"question_","type":"string"},{"name":"resolutionTime_","type":"uint256"},{"name":"oracleAdapter_","type":"address"}],"outputs":[{"name":"marketId","type":"uint256"}]},
+  {"type":"function","name":"resolveMarket","stateMutability":"nonpayable","inputs":[{"name":"marketId","type":"uint256"},{"name":"outcome","type":"bool"}],"outputs":[]},
+  {"type":"function","name":"redeemShares","stateMutability":"nonpayable","inputs":[{"name":"marketId","type":"uint256"},{"name":"amount","type":"uint256"}],"outputs":[]}
+]

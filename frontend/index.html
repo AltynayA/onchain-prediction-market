@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Market</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- network warning -->
+  <div id="networkWarning" class="hidden">
+    Wrong network. Please switch to Base Sepolia.
+    <button onclick="switchNetwork()">Switch</button>
+  </div>
+
+  <!-- navbar -->
+  <nav>
+    <span class="logo"> Prediction Market</span>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('dashboard', this)">Dashboard</button>
+      <button class="tab" onclick="showTab('market', this)">Market</button>
+      <button class="tab" onclick="showTab('vault', this)">Vault</button>
+      <button class="tab" onclick="showTab('governance', this)">Governance</button>
+    </div>
+    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  </nav>
+
+  <main>
+
+    <!-- dashboard -->
+    <section id="tab-dashboard" class="tab-content">
+      <h2>Dashboard</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Wallet</h3>
+          <p>Address: <span id="walletAddress">—</span></p>
+          <p>mUSDC Balance: <span id="usdcBalance">—</span></p>
+          <p>GOV Balance: <span id="govBalance">—</span></p>
+          <p>Voting Power: <span id="votingPower">—</span></p>
+          <p>Delegating to: <span id="delegateTo">—</span></p>
+        </div>
+        <div class="card">
+          <h3>AMM Pool Reserves</h3>
+          <p>YES Reserve: <span id="reserveYes">—</span></p>
+          <p>NO Reserve: <span id="reserveNo">—</span></p>
+          <p>YES Probability: <span id="impliedProb">—</span></p>
+          <p>Vault Total Assets: <span id="vaultAssets">—</span></p>
+          <p>Your Vault Shares: <span id="vaultShares">—</span></p>
+        </div>
+      </div>
+      <button class="btn" onclick="loadDashboard()">Refresh</button>
+    </section>
+
+    <!-- market -->
+    <section id="tab-market" class="tab-content hidden">
+      <h2>Prediction Market</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Market #0</h3>
+          <p>Question: <span id="marketQuestion">—</span></p>
+          <p>Status: <span id="marketStatus">—</span></p>
+          <p>Total Collateral: <span id="marketCollateral">—</span></p>
+          <p>YES Shares: <span id="marketYes">—</span></p>
+          <p>NO Shares: <span id="marketNo">—</span></p>
+          <button class="btn" onclick="loadMarket()">Load Market</button>
+        </div>
+        <div class="card">
+          <h3>Buy Shares (Write TX #1)</h3>
+          <p>Your mUSDC: <span id="marketBalance">—</span></p>
+          <div class="toggle">
+            <button id="btnYes" class="toggle-btn active" onclick="selectSide(true)">YES</button>
+            <button id="btnNo" class="toggle-btn" onclick="selectSide(false)">NO</button>
+          </div>
+          <label>Amount (mUSDC)</label>
+          <input id="buyAmount" type="number" placeholder="100" />
+          <button class="btn" onclick="buyShares()">Buy Shares</button>
+          <p id="buyStatus" class="status"></p>
+          <p id="buyError" class="error"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- vault -->
+    <section id="tab-vault" class="tab-content hidden">
+      <h2>Fee Vault (Write TX #2)</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Vault Info</h3>
+          <p>Total Assets: <span id="vaultTotal">—</span> mUSDC</p>
+          <p>Your Shares: <span id="yourShares">—</span> vPRED</p>
+          <p>Your mUSDC Balance: <span id="vaultUserBalance">—</span></p>
+          <button class="btn" onclick="loadVault()">Refresh</button>
+        </div>
+        <div class="card">
+          <h3>Deposit</h3>
+          <label>Amount (mUSDC)</label>
+          <input id="depositAmount" type="number" placeholder="50" />
+          <button class="btn" onclick="deposit()">Deposit</button>
+          <p id="depositStatus" class="status"></p>
+          <p id="depositError" class="error"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- governance -->
+    <section id="tab-governance" class="tab-content hidden">
+      <h2>DAO Governance</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Your Voting Power</h3>
+          <p>Balance: <span id="govBal">—</span> GOV</p>
+          <p>Voting Power: <span id="govPower">—</span></p>
+          <p>Delegating to: <span id="govDelegate">—</span></p>
+          <label>Delegate Votes (Write TX #3)</label>
+          <input id="delegateAddress" type="text" placeholder="0x..." />
+          <button class="btn" onclick="delegate()">Delegate</button>
+          <p id="delegateStatus" class="status"></p>
+          <p id="delegateError" class="error"></p>
+        </div>
+        <div class="card">
+          <h3>Proposals</h3>
+          <p class="muted">Data from The Graph subgraph</p>
+          <button class="btn" onclick="loadProposals()">Load Proposals</button>
+          <div id="proposalList"></div>
+          <p id="proposalError" class="error"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

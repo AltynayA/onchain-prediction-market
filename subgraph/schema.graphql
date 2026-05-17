@@ -1,0 +1,50 @@
+type Market @entity {
+  id: ID!
+  question: String!
+  resolutionTime: BigInt!
+  oracleAdapter: Bytes!
+  state: Int!
+  outcome: Boolean
+  totalCollateral: BigInt!
+  yesShares: BigInt!
+  noShares: BigInt!
+  createdAt: BigInt!
+  trades: [Trade!]! @derivedFrom(field: "market")
+}
+
+type Trade @entity {
+  id: ID!
+  market: Market!
+  buyer: Bytes!
+  isYes: Boolean!
+  collateralIn: BigInt!
+  sharesMinted: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+}
+
+type Proposal @entity {
+  id: ID!
+  proposalId: BigInt!
+  description: String!
+  blockTimestamp: BigInt!
+  votes: [Vote!]! @derivedFrom(field: "proposal")
+}
+
+type Vote @entity {
+  id: ID!
+  proposal: Proposal!
+  voter: Bytes!
+  support: Int!
+  weight: BigInt!
+  timestamp: BigInt!
+}
+
+type LPPosition @entity {
+  id: ID!
+  provider: Bytes!
+  lpAmount: BigInt!
+  yesAmount: BigInt!
+  noAmount: BigInt!
+  timestamp: BigInt!
+}
