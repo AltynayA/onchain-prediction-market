@@ -43,7 +43,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         uint256 _resNo = reserveNo;
 
         if (_totalLp == 0) {
-            // first deposit: geometric mean minus MINIMUM_LIQUIDITY 
+            // first deposit: geometric mean minus MINIMUM_LIQUIDITY
             lpMinted = _sqrt(yesIn * noIn) - MINIMUM_LIQUIDITY;
             require(lpMinted > 0, "CPMM: insufficient first liquidity");
 
