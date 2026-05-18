@@ -35,7 +35,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
     }
 
     function addLiquidity(uint256 yesIn, uint256 noIn, uint256 minLp) external nonReentrant returns (uint256 lpMinted) {
-        // Checks
+        // checks
         require(yesIn > 0 && noIn > 0, "CPMM: zero input");
 
         uint256 _totalLp = totalLpSupply;
@@ -43,7 +43,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         uint256 _resNo = reserveNo;
 
         if (_totalLp == 0) {
-            // first deposit: geometric mean minus MINIMUM_LIQUIDITY (locked to address(1))
+            // first deposit: geometric mean minus MINIMUM_LIQUIDITY 
             lpMinted = _sqrt(yesIn * noIn) - MINIMUM_LIQUIDITY;
             require(lpMinted > 0, "CPMM: insufficient first liquidity");
 
@@ -119,7 +119,7 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
         uint256 resIn = yesForNo ? reserveYes : reserveNo;
         uint256 resOut = yesForNo ? reserveNo : reserveYes;
 
-        // Core math in Yul — same formula as YulHelpers.amountOutYul but with fee
+        // core math in Yul — same formula as YulHelpers.amountOutYul but with fee
         amountOut = _getAmountOutYul(amountIn, resIn, resOut);
 
         require(amountOut >= minOut, "CPMM: slippage");
@@ -183,7 +183,6 @@ contract CPMM is ReentrancyGuard, IERC1155Receiver {
     }
 
     //ERC-1155 receiver functions
-    // Required so the contract can hold ERC-1155 tokens
     function onERC1155Received(address, address, uint256, uint256, bytes calldata)
         external
         pure

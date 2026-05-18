@@ -24,7 +24,7 @@ All protocol parameters (dispute window, fee vault address, oracle staleness) ar
                │                          │
                ▼                          ▼
 ┌──────────────────────┐    ┌─────────────────────────┐
-│  PredictionMarket    │    │          CPMM            │
+│  PredictionMarket    │    │          CPMM           │
 │  (UUPS Proxy)        │    │  (x·y=k AMM, 0.3% fee)  │
 │                      │    │                         │
 │  - createMarket()    │    │  - addLiquidity()       │
@@ -35,8 +35,8 @@ All protocol parameters (dispute window, fee vault address, oracle staleness) ar
        │                                 │
        ▼                                 ▼
 ┌──────────────┐              ┌──────────────────────┐
-│ OutcomeToken │              │   OutcomeToken        │
-│ (ERC-1155)   │              │   (shared)            │
+│ OutcomeToken │              │   OutcomeToken       │
+│ (ERC-1155)   │              │   (shared)           │
 │ YES (id=0)   │              └──────────────────────┘
 │ NO  (id=1)   │
 └──────────────┘
@@ -48,12 +48,12 @@ All protocol parameters (dispute window, fee vault address, oracle staleness) ar
 └──────────────┘    └──────────────────┘    └──────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
-│                    Governance Layer                      │
+│                    Governance Layer                     │
 │                                                         │
-│  GovernanceToken (ERC20Votes)                          │
-│       └─► MarketGovernor (OZ Governor)                 │
-│               └─► MarketTimelock (2-day delay)         │
-│                       └─► controls PredictionMarket    │
+│  GovernanceToken (ERC20Votes)                           │
+│       └─► MarketGovernor (OZ Governor)                  │
+│               └─► MarketTimelock (2-day delay)          │
+│                       └─► controls PredictionMarket     │
 └─────────────────────────────────────────────────────────┘
 ```
 

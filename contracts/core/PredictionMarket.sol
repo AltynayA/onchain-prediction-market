@@ -67,7 +67,6 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
     event SharesRedeemed(uint256 indexed marketId, address indexed redeemer, uint256 sharesIn, uint256 collateralOut);
 
     //constructor/initializer
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
@@ -133,7 +132,7 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
         require(block.timestamp < m.resolutionTime, "PM: past resolution time");
         require(amountIn > 0, "PM: zero amount");
 
-        // fee in Yul (benchmarked in yulhelpers)
+        // fee in Yul
         uint256 fee;
         assembly {
             fee := div(mul(amountIn, 100), 10000)
@@ -141,7 +140,7 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
         uint256 netAmount = amountIn - fee;
         require(netAmount >= minShares, "PM: slippage");
 
-        // effects: all state updated before any external call (CEI)
+        // all state updated before any external call (CEI)
         m.totalCollateral += netAmount;
         if (isYes) {
             m.yesShares += netAmount;
@@ -255,6 +254,6 @@ contract PredictionMarket is UUPSUpgradeable, AccessControlUpgradeable, Pausable
     // UUPS upgrade authorization
     function _authorizeUpgrade(address) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
-    // storage gap for future V1 additions (V2 appends after this)
+    // storage gap for future V1 additions - V2 appends after this
     uint256[44] private __gap;
 }

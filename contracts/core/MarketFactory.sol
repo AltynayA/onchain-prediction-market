@@ -78,7 +78,7 @@ contract MarketFactory is AccessControl {
         emit MarketDeployed(market, marketAdmin, salt, true);
     }
 
-    // predict the address (pre-approvals)
+    // predict the address
     function predictAddress(address marketAdmin, bytes32 salt) external view returns (address) {
         bytes32 effectiveSalt = salt ^ bytes32(uint256(uint160(marketAdmin)));
         bytes memory initCode =
